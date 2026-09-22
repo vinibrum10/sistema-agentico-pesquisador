@@ -1,0 +1,6 @@
+[project]
+name = "sistema-agentico-pesquisador"
+version = "0.1.0"
+description = "Workflow agêntico local para apoio à pesquisa científica."
+requires-python = ">=3.12"
+dependencies = []
