@@ -3,4 +3,8 @@ name = "sistema-agentico-pesquisador"
 version = "0.1.0"
 description = "Workflow agêntico local para apoio à pesquisa científica."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "langchain==1.4.2",
+    "langgraph==1.2.12",
+    "langchain-ollama==1.1.0",
+]
