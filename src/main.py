@@ -1,4 +1,5 @@
 import json
+import shutil
 import unicodedata
 from datetime import datetime
 from pathlib import Path
@@ -1125,10 +1126,11 @@ def montar_contexto_confirmado(
 
 def mostrar_contexto_final(
     contexto: dict,
+    titulo: str = "Contexto pronto para confirmação",
 ) -> None:
 
     print(
-        "\n=== Contexto pronto para confirmação ===\n"
+        f"\n=== {titulo} ===\n"
     )
 
     print(f"Tema:\n{contexto['tema']}")
@@ -1277,18 +1279,146 @@ def salvar_contexto(
     return CONTEXT_FILE
 
 
+# ==================================================
+# PESQUISA ATIVA — Manter / Ajustar / Mudar tema
+# ==================================================
+
+
+def carregar_contexto() -> dict:
+    return json.loads(
+        CONTEXT_FILE.read_text(encoding="utf-8")
+    )
+
+
+def contexto_para_exibicao(dados: dict) -> dict:
+    oficial = dados["oficial"]
+    derivados = dados["derivados_aprovados"]
+
+    return {
+        "tema": oficial["tema"],
+        "objetivo": oficial["objetivo"],
+        "foco": oficial["foco"],
+        "restricao": oficial["restricao"],
+        "idiomas": derivados["idiomas"],
+        "termos_base": derivados["termos_base"],
+        "restricao_geografica": derivados[
+            "restricao_geografica"
+        ],
+        "expansoes_aprovadas": derivados["expansoes"],
+    }
+
+
+def menu_pesquisa_ativa(dados: dict) -> str:
+    while True:
+        print("\n=== Pesquisa ativa ===\n")
+        print(f"Tema oficial: {dados['oficial']['tema']}")
+        print(f"Etapa: {dados.get('etapa')}")
+
+        print("\n[1] Manter pesquisa atual")
+        print("[2] Ajustar pesquisa atual (ainda não disponível)")
+        print("[3] Mudar tema da tese")
+
+        escolha = input("> ").strip()
+
+        if escolha == "1":
+            return "manter"
+
+        if escolha == "2":
+            print(
+                "\nAjustar ainda não está disponível nesta versão."
+            )
+            continue
+
+        if escolha == "3":
+            if confirmar_mudanca_de_tema(dados):
+                return "mudar"
+            continue
+
+        print("\nOpção inválida. Escolha 1, 2 ou 3.")
+
+
+def confirmar_mudanca_de_tema(dados: dict) -> bool:
+    print("\n=== Mudar tema da tese ===\n")
+    print(f"Tema atual: {dados['oficial']['tema']}")
+    print(
+        "\nATENÇÃO: o contexto científico e os resultados "
+        "desta pesquisa serão apagados."
+    )
+    print("Não será mantido nenhum histórico.")
+
+    while True:
+        print("\n[1] Confirmar mudança")
+        print("[2] Cancelar")
+
+        escolha = input("> ").strip()
+
+        if escolha == "1":
+            return True
+
+        if escolha == "2":
+            print("\nMudança cancelada. Nada foi alterado.")
+            return False
+
+        print("\nOpção inválida.")
+
+
+def apagar_pesquisa_ativa() -> None:
+    if ACTIVE_RESEARCH_DIR.exists():
+        shutil.rmtree(ACTIVE_RESEARCH_DIR)
+
+
+def manter_pesquisa(dados: dict) -> None:
+    mostrar_contexto_final(
+        contexto_para_exibicao(dados),
+        titulo="Pesquisa atual",
+    )
+
+    print(f"\nEtapa concluída: {dados.get('etapa')}")
+    print(f"Confirmado em: {dados.get('confirmado_em')}")
+
+    if dados.get("etapa") == ETAPA_INTAKE_CONCLUIDO:
+        print(
+            "\nPróxima etapa: Planner "
+            "(ainda não implementado)."
+        )
+
+
 def main() -> None:
     print(
         "\n=== Sistema Agêntico Pesquisador ===\n"
     )
 
     if existe_pesquisa_ativa():
-        print("Pesquisa ativa encontrada.")
-        return
+        try:
+            dados = carregar_contexto()
+            contexto_para_exibicao(dados)
 
-    print(
-        "Nenhuma pesquisa ativa encontrada."
-    )
+        except (json.JSONDecodeError, KeyError) as erro:
+            print(
+                "Pesquisa ativa encontrada, mas o arquivo "
+                "context.json não pôde ser lido."
+            )
+            print(f"Erro: {erro}")
+            print(f"Arquivo: {CONTEXT_FILE}")
+            return
+
+        acao = menu_pesquisa_ativa(dados)
+
+        if acao == "manter":
+            manter_pesquisa(dados)
+            return
+
+        apagar_pesquisa_ativa()
+
+        print(
+            "\nPesquisa anterior apagada. "
+            "Iniciando novo Intake."
+        )
+
+    else:
+        print(
+            "Nenhuma pesquisa ativa encontrada."
+        )
 
     respostas = executar_intake()
 
