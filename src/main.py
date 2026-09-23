@@ -10,6 +10,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ACTIVE_RESEARCH_DIR = PROJECT_ROOT / "data" / "active_research"
 CONTEXT_FILE = ACTIVE_RESEARCH_DIR / "context.json"
 
+# Etapa do workflow em que a pesquisa ativa parou.
+ETAPA_INTAKE_CONCLUIDO = "intake_concluido"
+
 # Um termo-base deve ser um conceito curto,
 # não a frase inteira do tema ou do objetivo.
 MAX_PALAVRAS_ORIGEM = 4
@@ -1223,17 +1226,43 @@ def confirmar_contexto_final() -> bool:
         print("\nOpção inválida.")
 
 
-def salvar_contexto(contexto: dict) -> Path:
+def salvar_contexto(
+    respostas: dict,
+    contexto: dict,
+) -> Path:
+
     ACTIVE_RESEARCH_DIR.mkdir(
         parents=True,
         exist_ok=True,
     )
 
+    # Separação: o que o pesquisador respondeu,
+    # o que ele definiu como oficial e o que ele aprovou.
     dados = {
-        **contexto,
+        "etapa": ETAPA_INTAKE_CONCLUIDO,
         "confirmado_em": datetime.now().isoformat(
             timespec="seconds"
         ),
+        "respostas_intake": {
+            "tema": respostas["tema"],
+            "objetivo": respostas["objetivo"],
+            "foco": respostas["foco"],
+            "restricao": respostas["restricao"],
+        },
+        "oficial": {
+            "tema": contexto["tema"],
+            "objetivo": contexto["objetivo"],
+            "foco": contexto["foco"],
+            "restricao": contexto["restricao"],
+        },
+        "derivados_aprovados": {
+            "idiomas": contexto["idiomas"],
+            "termos_base": contexto["termos_base"],
+            "restricao_geografica": contexto[
+                "restricao_geografica"
+            ],
+            "expansoes": contexto["expansoes_aprovadas"],
+        },
     }
 
     CONTEXT_FILE.write_text(
@@ -1309,7 +1338,10 @@ def main() -> None:
                 "\nContexto confirmado pelo pesquisador."
             )
 
-            caminho = salvar_contexto(contexto)
+            caminho = salvar_contexto(
+                respostas,
+                contexto,
+            )
 
             print(
                 f"Contexto salvo em: {caminho}"
