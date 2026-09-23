@@ -344,6 +344,14 @@ Para cada conceito-base:
    Deve ser um conceito curto (1 a 4 palavras),
    nunca a frase inteira do tema ou do objetivo.
 
+   Termo-base é o OBJETO da pesquisa: um substantivo
+   ou expressão nominal (o que é estudado, o método,
+   o material, o fenômeno).
+   Ações NÃO são termos-base: verbos e expressões
+   iniciadas por verbo (ex.: "utilizar ...",
+   "identificar ...", "avaliar ...", "propor ...").
+   Se uma ação contém um conceito, extraia só o conceito.
+
 2. Não invente uma origem.
 
 3. Não transforme um conceito em outro conceito.
