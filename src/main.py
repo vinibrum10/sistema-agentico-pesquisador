@@ -1,5 +1,6 @@
 import json
 import unicodedata
+from datetime import datetime
 from pathlib import Path
 
 from langchain_ollama import ChatOllama
@@ -1222,6 +1223,31 @@ def confirmar_contexto_final() -> bool:
         print("\nOpção inválida.")
 
 
+def salvar_contexto(contexto: dict) -> Path:
+    ACTIVE_RESEARCH_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    dados = {
+        **contexto,
+        "confirmado_em": datetime.now().isoformat(
+            timespec="seconds"
+        ),
+    }
+
+    CONTEXT_FILE.write_text(
+        json.dumps(
+            dados,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    return CONTEXT_FILE
+
+
 def main() -> None:
     print(
         "\n=== Sistema Agêntico Pesquisador ===\n"
@@ -1282,8 +1308,11 @@ def main() -> None:
             print(
                 "\nContexto confirmado pelo pesquisador."
             )
+
+            caminho = salvar_contexto(contexto)
+
             print(
-                "Nada foi salvo ainda."
+                f"Contexto salvo em: {caminho}"
             )
         else:
             print(
