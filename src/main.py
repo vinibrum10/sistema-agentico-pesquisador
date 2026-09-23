@@ -355,40 +355,22 @@ Para cada conceito-base:
    - conceitos mais amplos;
    - conceitos mais específicos.
 
-Exemplo:
+Exemplo (genérico):
 
-Se o pesquisador escreveu:
-
-"inteligência artificial"
+Se o pesquisador escreveu a expressão "<conceito X>":
 
 termo-base permitido:
 
-origem: "inteligência artificial"
-pt: ["inteligência artificial"]
-en: ["artificial intelligence"]
+origem: "<conceito X>"
+pt: ["<conceito X>"]
+en: ["<tradução direta de conceito X>"]
 
 NÃO são termos-base permitidos:
 
-- machine learning
-- deep learning
-- neural networks
+- conceitos relacionados a X que o pesquisador não escreveu;
+- subtipos, técnicas ou áreas associadas a X.
 
-Se o pesquisador escreveu:
-
-"prospecção de urânio"
-
-termo-base permitido:
-
-origem: "prospecção de urânio"
-pt: ["prospecção de urânio"]
-en: ["uranium prospecting"]
-
-NÃO são termos-base permitidos:
-
-- mineração
-- geologia
-- prospecção mineral
-- prospecção geológica
+Esses termos, se úteis, vão para as EXPANSÕES.
 
 
 ==================================================
@@ -410,8 +392,9 @@ Essas expansões:
 RESTRIÇÃO GEOGRÁFICA
 ==================================================
 
-Se existir uma restrição geográfica explícita,
-como Brasil ou Brazil, coloque-a separadamente.
+Se existir uma restrição geográfica explícita
+(um país, região ou local escrito pelo pesquisador),
+coloque-a separadamente.
 
 A origem também deve ser copiada literalmente
 da resposta do pesquisador.
@@ -455,8 +438,8 @@ Retorne SOMENTE JSON válido:
 
   "restricao_geografica": {{
     "origem": "expressão literal presente nas respostas",
-    "pt": ["Brasil"],
-    "en": ["Brazil"]
+    "pt": ["local em português"],
+    "en": ["local em inglês"]
   }},
 
   "expansoes_sugeridas": [
@@ -772,94 +755,237 @@ def mostrar_termos_base(
     print("\n=== Termos-base ===")
 
     if not termos:
-        print("\nNenhum termo-base válido.")
+        print("\nNenhum termo-base.")
 
-    for termo in termos:
+    for indice, termo in enumerate(
+        termos,
+        start=1,
+    ):
+        print(f"\n[{indice}] {termo['origem']}")
+        print("    PT: " + ", ".join(termo["pt"]))
+        print("    EN: " + ", ".join(termo["en"]))
+
+
+def ler_lista(texto: str) -> list:
+    return [
+        item.strip()
+        for item in texto.split(",")
+        if item.strip()
+    ]
+
+
+def ler_indices(
+    texto: str,
+    total: int,
+) -> list | None:
+
+    try:
+        indices = {
+            int(item.strip())
+            for item in texto.split(",")
+            if item.strip()
+        }
+
+    except ValueError:
+        return None
+
+    if not indices or any(
+        indice < 1 or indice > total
+        for indice in indices
+    ):
+        return None
+
+    return sorted(indices)
+
+
+def remover_termos(
+    termos: list,
+    argumento: str,
+) -> list:
+
+    if not termos:
+        print("\nNão há termos para remover.")
+        return termos
+
+    if not argumento:
+        argumento = input(
+            "\nNúmeros dos termos a remover (ex.: 1,2):\n> "
+        ).strip()
+
+    indices = ler_indices(argumento, len(termos))
+
+    if indices is None:
+        print("\nNúmero inválido. Nada foi removido.")
+        return termos
+
+    for indice in indices:
+        print(f"Removido: {termos[indice - 1]['origem']}")
+
+    return [
+        termo
+        for posicao, termo in enumerate(termos, start=1)
+        if posicao not in indices
+    ]
+
+
+def adicionar_termo(
+    termos: list,
+    oficial: dict,
+) -> list:
+
+    origem = input(
+        "\nOrigem do termo (trecho literal do Tema, "
+        "Objetivo ou Restrição oficiais):\n> "
+    ).strip()
+
+    if not validar_origem(origem, oficial):
         print(
-            f"\nOrigem: \"{termo['origem']}\""
+            "\nTermo não adicionado: origem não encontrada "
+            "no contexto oficial."
         )
+        return termos
 
-        print("PT:")
-        for item in termo["pt"]:
-            print(f"- {item}")
+    if not origem_e_conceito_curto(origem, oficial):
+        print(
+            "\nTermo não adicionado: origem longa demais, "
+            "não é um conceito."
+        )
+        return termos
 
-        print("EN:")
-        for item in termo["en"]:
-            print(f"- {item}")
+    if any(
+        normalizar_texto(termo["origem"])
+        == normalizar_texto(origem)
+        for termo in termos
+    ):
+        print("\nTermo não adicionado: já existe na lista.")
+        return termos
+
+    pt = ler_lista(
+        input(
+            "Termos PT (separe por vírgula; "
+            "Enter para usar a própria origem):\n> "
+        )
+    ) or [origem]
+
+    en = ler_lista(
+        input("Termos EN (separe por vírgula):\n> ")
+    )
+
+    if not en:
+        print("\nTermo não adicionado: EN não pode ficar vazio.")
+        return termos
+
+    codigos = {termo["codigo"] for termo in termos}
+    numero = 1
+    while f"manual_{numero}" in codigos:
+        numero += 1
+
+    print(f"Adicionado: {origem}")
+
+    return termos + [
+        {
+            "codigo": f"manual_{numero}",
+            "origem": origem,
+            "pt": pt,
+            "en": en,
+        }
+    ]
+
+
+def editar_termo(
+    termos: list,
+    argumento: str,
+) -> list:
+
+    if not termos:
+        print("\nNão há termos para editar.")
+        return termos
+
+    if not argumento:
+        argumento = input(
+            "\nNúmero do termo a editar:\n> "
+        ).strip()
+
+    indices = ler_indices(argumento, len(termos))
+
+    if indices is None or len(indices) != 1:
+        print("\nInforme um único número válido.")
+        return termos
+
+    termo = termos[indices[0] - 1]
+
+    print(f"\nOrigem: {termo['origem']}")
+
+    print("Termos PT atuais: " + ", ".join(termo["pt"]))
+    novo_pt = ler_lista(
+        input(
+            "Novos termos PT "
+            "(separe por vírgula ou Enter para manter):\n> "
+        )
+    )
+
+    print("Termos EN atuais: " + ", ".join(termo["en"]))
+    novo_en = ler_lista(
+        input(
+            "Novos termos EN "
+            "(separe por vírgula ou Enter para manter):\n> "
+        )
+    )
+
+    editado = {
+        "codigo": termo["codigo"],
+        "origem": termo["origem"],
+        "pt": novo_pt or termo["pt"],
+        "en": novo_en or termo["en"],
+    }
+
+    return [
+        editado if item is termo else item
+        for item in termos
+    ]
 
 
 def confirmar_termos_base(
     termos: list,
+    oficial: dict,
 ) -> list:
 
-    mostrar_termos_base(termos)
+    termos = list(termos)
 
     while True:
-        print("\n[1] Confirmar")
-        print("[2] Ajustar")
+        mostrar_termos_base(termos)
 
-        escolha = input("> ").strip()
+        print("\n[C] Confirmar")
+        print("[R] Remover termos (ex.: R 2  ou  R 1,2)")
+        print("[A] Adicionar termo")
+        print("[E] Editar PT/EN de um termo (ex.: E 1)")
 
-        if escolha == "1":
+        entrada = input("> ").strip()
+        comando = entrada[:1].lower()
+        argumento = entrada[1:].strip()
+
+        if comando == "c" and not argumento:
+            if not termos:
+                print(
+                    "\nÉ preciso ter pelo menos um termo-base."
+                )
+                continue
+
             return termos
 
-        if escolha == "2":
-            termos_ajustados = []
+        if comando == "r":
+            termos = remover_termos(termos, argumento)
+            continue
 
-            for termo in termos:
-                print(
-                    f"\nOrigem: {termo['origem']}"
-                )
+        if comando == "a" and not argumento:
+            termos = adicionar_termo(termos, oficial)
+            continue
 
-                print(
-                    "Termos PT atuais: "
-                    + ", ".join(termo["pt"])
-                )
+        if comando == "e":
+            termos = editar_termo(termos, argumento)
+            continue
 
-                novo_pt = input(
-                    "Novos termos PT "
-                    "(separe por vírgula ou Enter para manter):\n> "
-                ).strip()
-
-                print(
-                    "Termos EN atuais: "
-                    + ", ".join(termo["en"])
-                )
-
-                novo_en = input(
-                    "Novos termos EN "
-                    "(separe por vírgula ou Enter para manter):\n> "
-                ).strip()
-
-                pt = termo["pt"]
-                en = termo["en"]
-
-                if novo_pt:
-                    pt = [
-                        item.strip()
-                        for item in novo_pt.split(",")
-                        if item.strip()
-                    ]
-
-                if novo_en:
-                    en = [
-                        item.strip()
-                        for item in novo_en.split(",")
-                        if item.strip()
-                    ]
-
-                termos_ajustados.append(
-                    {
-                        "codigo": termo["codigo"],
-                        "origem": termo["origem"],
-                        "pt": pt,
-                        "en": en,
-                    }
-                )
-
-            return termos_ajustados
-
-        print("\nOpção inválida.")
+        print("\nOpção inválida. Use C, R, A ou E.")
 
 
 def selecionar_expansoes(
@@ -952,11 +1078,31 @@ def montar_contexto_confirmado(
     )
 
     termos_base = confirmar_termos_base(
-        resultado["termos_base_validos"]
+        resultado["termos_base_validos"],
+        oficial,
     )
 
+    # Só oferece expansões dos termos-base que ficaram.
+    origem_por_codigo = {
+        termo["codigo"]: termo["origem"]
+        for termo in termos_base
+    }
+
+    expansoes_disponiveis = []
+
+    for expansao in resultado["expansoes_sugeridas"]:
+        codigo = expansao.get("codigo_base")
+
+        if codigo in origem_por_codigo:
+            expansoes_disponiveis.append(
+                {
+                    **expansao,
+                    "origem_base": origem_por_codigo[codigo],
+                }
+            )
+
     expansoes = selecionar_expansoes(
-        resultado["expansoes_sugeridas"]
+        expansoes_disponiveis
     )
 
     return {
