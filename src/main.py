@@ -20,6 +20,11 @@ from agents.intake.intake import (
 from agents.planner.planner import (
     executar_planner,
 )
+from agents.search.openalex import (
+    buscar,
+    montar_consulta,
+    salvar_resultados,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -87,6 +92,35 @@ def confirmar_mudanca_de_tema(dados: dict) -> bool:
         print("\nOpção inválida.")
 
 
+def executar_busca(plano: dict) -> None:
+    while True:
+        escolha = input("\nExecutar busca no OpenAlex? [s/n] ").strip().lower()
+
+        if escolha == "n":
+            print("\nBusca não executada.")
+            return
+
+        if escolha == "s":
+            break
+
+        print("\nOpção inválida.")
+
+    consulta = montar_consulta(plano)
+
+    try:
+        resultados = buscar(consulta)
+        total = salvar_resultados(resultados, consulta)
+
+    except Exception as erro:
+        print("\nNão foi possível buscar no OpenAlex.")
+        print(f"Erro: {erro}")
+        print("Nada foi salvo.")
+        return
+
+    print(f"\n{len(resultados)} resultado(s) nesta busca.")
+    print(f"Total acumulado em results.csv: {total}")
+
+
 def manter_pesquisa(dados: dict) -> None:
     mostrar_contexto_final(
         contexto_para_exibicao(dados),
@@ -106,7 +140,11 @@ def manter_pesquisa(dados: dict) -> None:
         escolha = input("> ").strip()
 
         if escolha == "1":
-            executar_planner(dados)
+            plano = executar_planner(dados)
+
+            if plano is not None:
+                executar_busca(plano)
+
             return
 
         if escolha == "2":

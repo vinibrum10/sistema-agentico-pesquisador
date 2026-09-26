@@ -1,5 +1,8 @@
 """Planner V1: monta o plano de busca de forma determinística, sem LLM."""
 
+from agents.search.openalex import (
+    montar_consulta,
+)
 from core.pesquisa_ativa import (
     ROTULOS_FOCO,
 )
@@ -97,25 +100,6 @@ def montar_plano(dados: dict) -> dict:
     }
 
 
-def previa_consulta(plano: dict, idioma: str) -> str:
-    partes = []
-
-    for grupo in plano["grupos"]:
-        if not grupo["incluido"]:
-            continue
-
-        termos = grupo["variantes"].get(idioma, [])
-
-        if not termos:
-            continue
-
-        partes.append(
-            "(" + " OR ".join(f'"{termo}"' for termo in termos) + ")"
-        )
-
-    return "\nAND ".join(partes) if partes else "(vazia)"
-
-
 def mostrar_plano(plano: dict) -> None:
     print("\n=== Plano de busca ===")
 
@@ -130,9 +114,8 @@ def mostrar_plano(plano: dict) -> None:
                 + (", ".join(termos) if termos else "(sem termos)")
             )
 
-    for idioma in plano["idiomas"]:
-        print(f"\n--- Prévia da consulta {idioma.upper()} ---")
-        print(previa_consulta(plano, idioma))
+    print("\n--- Prévia da consulta ---")
+    print(montar_consulta(plano) or "(vazia)")
 
 
 def editar_plano(plano: dict) -> dict | None:
@@ -178,7 +161,7 @@ def editar_plano(plano: dict) -> dict | None:
         print("\nOpção inválida. Use T n, C ou X.")
 
 
-def executar_planner(dados: dict) -> None:
+def executar_planner(dados: dict) -> dict | None:
     plano = montar_plano(dados)
 
     if not any(g["tipo"] == "conceito" for g in plano["grupos"]):
@@ -186,21 +169,15 @@ def executar_planner(dados: dict) -> None:
             "\nA pesquisa não tem termos-base. "
             "Use [2] Ajustar para adicioná-los."
         )
-        return
+        return None
 
     plano = editar_plano(plano)
 
     if plano is None:
         print("\nPlano cancelado. Nada foi alterado.")
-        return
+        return None
 
     print("\n=== Plano confirmado ===")
+    print(montar_consulta(plano))
 
-    for idioma in plano["idiomas"]:
-        print(f"\n--- Consulta {idioma.upper()} ---")
-        print(previa_consulta(plano, idioma))
-
-    print(
-        "\nO plano não foi salvo. "
-        "Próxima etapa: Search (ainda não implementado)."
-    )
+    return plano
