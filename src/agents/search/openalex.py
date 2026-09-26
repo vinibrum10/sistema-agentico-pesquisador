@@ -1,5 +1,14 @@
 ﻿"""Search V1 — busca no OpenAlex a partir do plano confirmado pelo Planner."""
 
+import os
+
+import pyalex
+from dotenv import load_dotenv
+from pyalex import Works
+
+load_dotenv()
+pyalex.config.api_key = os.getenv("OPENALEX_API_KEY")
+
 
 def _formatar_termo(termo):
     termo = termo.strip()
@@ -25,3 +34,8 @@ def montar_consulta(plano):
         bloco = " OR ".join(termos)
         partes.append(f"({bloco})" if len(termos) > 1 else bloco)
     return " AND ".join(partes)
+
+
+def buscar(consulta, n=25):
+    """Uma consulta, n resultados, sem paginação. Zero resultados = lista vazia (válido)."""
+    return Works().search(consulta).get(per_page=n)

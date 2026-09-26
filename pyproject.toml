@@ -7,4 +7,6 @@ dependencies = [
     "langchain==1.4.2",
     "langgraph==1.2.12",
     "langchain-ollama==1.1.0",
+    "pyalex==0.21",
+    "python-dotenv==1.2.3",
 ]
