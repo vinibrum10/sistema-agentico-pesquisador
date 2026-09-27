@@ -73,7 +73,8 @@ def montar_plano(dados: dict) -> dict:
                     )
                     for idioma in idiomas
                 },
-                "incluido": True,
+                # Desmarcado por padrao: termos genericos nao filtram a busca.
+                "incluido": False,
             }
         )
 
