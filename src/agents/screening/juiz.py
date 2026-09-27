@@ -122,13 +122,34 @@ Responda em JSON.
     }
 
 
+def carregar_triagem() -> dict:
+    """Vereditos ja gravados; "erro" nao conta e sera julgado de novo."""
+
+    if not SCREENING_FILE.exists():
+        return {}
+
+    with open(SCREENING_FILE, encoding="utf-8-sig", newline="") as f:
+        return {
+            linha["openalex_id"]: linha
+            for linha in csv.DictReader(f)
+            if linha["veredito"] != "erro"
+        }
+
+
 def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
     modelo = criar_juiz()
+    anteriores = carregar_triagem()
     saida = []
+    novos = 0
 
     for numero, linha in enumerate(linhas, start=1):
+        if linha["openalex_id"] in anteriores:
+            saida.append(anteriores[linha["openalex_id"]])
+            continue
+
+        novos += 1
         print(f"[{numero}/{len(linhas)}] {linha['titulo'][:70]}")
 
         if linha["openalex_id"] in descartes:
@@ -163,6 +184,7 @@ def executar_triagem(dados: dict):
         resumo[linha["veredito"]] = resumo.get(linha["veredito"], 0) + 1
 
     print("\n=== Resumo da triagem ===")
+    print(f"Papers novos triados: {novos}")
     for veredito, total in sorted(resumo.items()):
         print(f"{veredito}: {total}")
 
