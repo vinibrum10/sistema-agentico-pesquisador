@@ -103,6 +103,10 @@ Responda em JSON.
     else:
         veredito = "talvez"
 
+    # Sem resumo, o titulo nao basta para descartar: vai para revisao humana.
+    if not resumo and veredito == "lixo":
+        veredito = "talvez"
+
     trecho = str(resposta.get("trecho", "")).strip()
 
     trecho_valido = bool(trecho) and (
