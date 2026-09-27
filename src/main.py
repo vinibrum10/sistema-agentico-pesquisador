@@ -28,6 +28,9 @@ from agents.search.openalex import (
 from agents.screening.juiz import (
     executar_triagem,
 )
+from agents.refino.loop import (
+    executar_loop,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -139,7 +142,8 @@ def manter_pesquisa(dados: dict) -> None:
     while True:
         print("\n[1] Montar plano de busca")
         print("[2] Triar resultados")
-        print("[3] Sair")
+        print("[3] Refinar busca (loop)")
+        print("[4] Sair")
 
         escolha = input("> ").strip()
 
@@ -156,6 +160,10 @@ def manter_pesquisa(dados: dict) -> None:
             return
 
         if escolha == "3":
+            executar_loop(dados)
+            return
+
+        if escolha == "4":
             return
 
         print("\nOpção inválida.")
