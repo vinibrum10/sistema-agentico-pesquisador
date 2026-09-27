@@ -1,6 +1,7 @@
 ﻿"""Triagem: filtros determinísticos (retratados e duplicatas), sem LLM."""
 
 import csv
+import re
 
 from agents.search.openalex import RESULTS_FILE
 from core.texto import normalizar_texto
@@ -9,6 +10,12 @@ from core.texto import normalizar_texto
 def carregar_resultados() -> list:
     with open(RESULTS_FILE, encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
+
+
+def chave_titulo(titulo: str) -> str:
+    """Titulo normalizado sem pontuacao (ex.: versoes que diferem so no traco)."""
+
+    return " ".join(re.sub(r"[^\w\s]", " ", normalizar_texto(titulo)).split())
 
 
 def filtrar(linhas: list) -> dict:
@@ -31,7 +38,7 @@ def filtrar(linhas: list) -> dict:
         chaves = [
             chave
             for chave in (
-                normalizar_texto(linha["titulo"]),
+                chave_titulo(linha["titulo"]),
                 linha["doi"].lower(),
             )
             if chave

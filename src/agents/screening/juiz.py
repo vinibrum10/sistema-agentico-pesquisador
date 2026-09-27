@@ -145,13 +145,7 @@ def executar_triagem(dados: dict):
     novos = 0
 
     for numero, linha in enumerate(linhas, start=1):
-        if linha["openalex_id"] in anteriores:
-            saida.append(anteriores[linha["openalex_id"]])
-            continue
-
-        novos += 1
-        print(f"[{numero}/{len(linhas)}] {linha['titulo'][:70]}")
-
+        # Descartes sao recalculados sempre: valem tambem para papers ja triados.
         if linha["openalex_id"] in descartes:
             saida.append(
                 linha_sem_llm(
@@ -161,6 +155,13 @@ def executar_triagem(dados: dict):
                 )
             )
             continue
+
+        if linha["openalex_id"] in anteriores:
+            saida.append(anteriores[linha["openalex_id"]])
+            continue
+
+        novos += 1
+        print(f"[{numero}/{len(linhas)}] {linha['titulo'][:70]}")
 
         try:
             saida.append(julgar(modelo, dados["oficial"], linha))
