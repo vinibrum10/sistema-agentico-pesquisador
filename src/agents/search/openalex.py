@@ -14,7 +14,7 @@ load_dotenv()
 pyalex.config.api_key = os.getenv("OPENALEX_API_KEY")
 
 RESULTS_FILE = ACTIVE_RESEARCH_DIR / "results.csv"
-COLUNAS = ["openalex_id", "doi", "titulo", "ano", "venue", "citacoes", "abstract", "consulta_origem", "data_run"]
+COLUNAS = ["openalex_id", "doi", "titulo", "ano", "venue", "citacoes", "retratado", "abstract", "consulta_origem", "data_run"]
 
 
 def _formatar_termo(termo):
@@ -57,6 +57,7 @@ def _linha(w, consulta, data_run):
         "ano": w.get("publication_year") or "",
         "venue": fonte.get("display_name") or "",
         "citacoes": w.get("cited_by_count", 0),
+        "retratado": w.get("is_retracted", False),
         "abstract": w["abstract"] or "",
         "consulta_origem": consulta,
         "data_run": data_run,
