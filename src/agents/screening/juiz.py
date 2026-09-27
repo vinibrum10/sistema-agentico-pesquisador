@@ -158,4 +158,12 @@ def executar_triagem(dados: dict):
         escritor.writeheader()
         escritor.writerows(saida)
 
+    resumo = {}
+    for linha in saida:
+        resumo[linha["veredito"]] = resumo.get(linha["veredito"], 0) + 1
+
+    print("\n=== Resumo da triagem ===")
+    for veredito, total in sorted(resumo.items()):
+        print(f"{veredito}: {total}")
+
     return SCREENING_FILE

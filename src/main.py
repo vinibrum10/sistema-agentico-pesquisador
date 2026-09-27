@@ -25,6 +25,9 @@ from agents.search.openalex import (
     montar_consulta,
     salvar_resultados,
 )
+from agents.screening.juiz import (
+    executar_triagem,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -135,7 +138,8 @@ def manter_pesquisa(dados: dict) -> None:
 
     while True:
         print("\n[1] Montar plano de busca")
-        print("[2] Sair")
+        print("[2] Triar resultados")
+        print("[3] Sair")
 
         escolha = input("> ").strip()
 
@@ -148,6 +152,10 @@ def manter_pesquisa(dados: dict) -> None:
             return
 
         if escolha == "2":
+            executar_triagem(dados)
+            return
+
+        if escolha == "3":
             return
 
         print("\nOpção inválida.")
