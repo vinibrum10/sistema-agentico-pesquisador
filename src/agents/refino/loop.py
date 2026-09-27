@@ -40,32 +40,29 @@ def ler_vereditos() -> dict:
         }
 
 
-def executar_rodada(
-    dados: dict,
-    plano: dict,
-    rodada: int,
+def registrar_rodada(
+    ids: list,
+    rodada,
+    consulta: str,
     ajuste: str = "",
     motivo: str = "",
 ) -> dict:
-    consulta = montar_consulta(plano)
-    resultados = buscar(consulta)
-    salvar_resultados(resultados, consulta)
-    executar_triagem(dados)
+    """Mede os vereditos dos papers da rodada e grava uma linha no loop_log.csv."""
 
     vereditos = ler_vereditos()
     contagem = {veredito: 0 for veredito in VEREDITOS}
 
-    for work in resultados:
-        contagem[vereditos[work["id"]]] += 1
+    for pid in ids:
+        contagem[vereditos[pid]] += 1
 
-    validos = len(resultados) - contagem["descartado"] - contagem["erro"]
+    validos = len(ids) - contagem["descartado"] - contagem["erro"]
     precisao = contagem["relevante"] / validos if validos else 0.0
 
     linha = {
         "data_hora": datetime.now().isoformat(timespec="seconds"),
         "rodada": rodada,
         "consulta": consulta,
-        "total": len(resultados),
+        "total": len(ids),
         **contagem,
         "precisao": f"{precisao:.2f}",
         "ajuste": ajuste,
@@ -86,6 +83,27 @@ def executar_rodada(
     )
 
     return linha
+
+
+def executar_rodada(
+    dados: dict,
+    plano: dict,
+    rodada: int,
+    ajuste: str = "",
+    motivo: str = "",
+) -> dict:
+    consulta = montar_consulta(plano)
+    resultados = buscar(consulta)
+    salvar_resultados(resultados, consulta)
+    executar_triagem(dados)
+
+    return registrar_rodada(
+        [work["id"] for work in resultados],
+        rodada,
+        consulta,
+        ajuste,
+        motivo,
+    )
 
 
 def papers_da_rodada(consulta: str) -> list:
