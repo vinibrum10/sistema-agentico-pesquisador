@@ -3,7 +3,8 @@
 import csv
 import json
 
-from agents.intake.intake import criar_modelo
+from langchain_ollama import ChatOllama
+
 from agents.screening.filtros import carregar_resultados, filtrar
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, ROTULOS_FOCO
 from core.texto import normalizar_texto
@@ -20,9 +21,28 @@ COLUNAS = [
     "confianca",
 ]
 
-VEREDITOS = {"relevante", "talvez", "lixo"}
-
 MAX_RESUMO = 2500
+
+# Saída estruturada: tipos obrigatórios, sem exemplo de valores para copiar.
+ESQUEMA = {
+    "type": "object",
+    "properties": {
+        "objeto": {"type": "string"},
+        "mesmo_dominio": {"type": "boolean"},
+        "mesmo_problema": {"type": "boolean"},
+        "trecho": {"type": "string"},
+    },
+    "required": ["objeto", "mesmo_dominio", "mesmo_problema", "trecho"],
+}
+
+
+def criar_juiz() -> ChatOllama:
+    return ChatOllama(
+        model="qwen3:8b",
+        temperature=0,
+        reasoning=False,
+        format=ESQUEMA,
+    )
 
 
 def linha_sem_llm(linha: dict, veredito: str, justificativa: str) -> dict:
@@ -34,6 +54,10 @@ def linha_sem_llm(linha: dict, veredito: str, justificativa: str) -> dict:
         "trecho": "",
         "confianca": "",
     }
+
+
+def sim(valor) -> bool:
+    return str(valor).strip().lower() in {"true", "sim", "yes"}
 
 
 def julgar(modelo, oficial: dict, linha: dict) -> dict:
@@ -51,23 +75,34 @@ Artigo:
 - Título: {linha["titulo"]}
 - Resumo: {resumo or "(sem resumo)"}
 
-Classifique o artigo em relação ao OBJETIVO da pesquisa:
-- "relevante": contribui diretamente para o objetivo, considerando o foco;
-- "talvez": relacionado, mas com contribuição indireta ou parcial;
-- "lixo": não contribui para o objetivo.
+Ao comparar o artigo com a pesquisa, IGNORE as técnicas usadas
+(por exemplo: aprendizado de máquina, estatística, simulação).
+Compare apenas O QUE é estudado.
 
-"justificativa": uma frase curta explicando o veredito.
-"trecho": copie LITERALMENTE uma frase curta do resumo que sustente
-o veredito. Se não houver resumo, use "".
+Campos da resposta:
+- objeto: em poucas palavras, o que o artigo estuda ou analisa.
+- mesmo_dominio: o artigo estuda o mesmo tipo de coisa que a pesquisa,
+  na mesma área de aplicação, mesmo que em outro local ou exemplar?
+- mesmo_problema: o artigo tenta resolver o mesmo problema da pesquisa
+  ou um problema análogo direto?
+- trecho: uma frase curta copiada LITERALMENTE do resumo que sustente
+  as respostas; vazio se não houver resumo.
 
-Retorne SOMENTE JSON válido:
-
-{{"veredito": "relevante", "justificativa": "texto", "trecho": "texto"}}
+Responda em JSON.
 """
 
     resposta = json.loads(modelo.invoke(prompt).content)
 
-    veredito = str(resposta.get("veredito", "")).strip().lower()
+    dominio = sim(resposta.get("mesmo_dominio"))
+    problema = sim(resposta.get("mesmo_problema"))
+
+    if not dominio:
+        veredito = "lixo"
+    elif problema:
+        veredito = "relevante"
+    else:
+        veredito = "talvez"
+
     trecho = str(resposta.get("trecho", "")).strip()
 
     trecho_valido = bool(trecho) and (
@@ -77,8 +112,11 @@ Retorne SOMENTE JSON válido:
     return {
         "openalex_id": linha["openalex_id"],
         "titulo": linha["titulo"],
-        "veredito": veredito if veredito in VEREDITOS else "erro",
-        "justificativa": str(resposta.get("justificativa", "")).strip(),
+        "veredito": veredito,
+        "justificativa": (
+            f"objeto: {str(resposta.get('objeto', '')).strip()}; "
+            f"mesmo_dominio={dominio}; mesmo_problema={problema}"
+        ),
         "trecho": trecho,
         "confianca": "normal" if trecho_valido else "baixa",
     }
@@ -87,7 +125,7 @@ Retorne SOMENTE JSON válido:
 def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
-    modelo = criar_modelo()
+    modelo = criar_juiz()
     saida = []
 
     for numero, linha in enumerate(linhas, start=1):
