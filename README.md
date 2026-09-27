@@ -1,11 +1,12 @@
 ﻿# Sistema Agêntico Pesquisador
 
 Workflow agêntico local para apoio à pesquisa científica, agnóstico ao tema.
-Modelo local via Ollama (`qwen3:8b`); busca científica no OpenAlex.
+Modelo local via Ollama (`qwen3:8b`, GPU local); busca científica no OpenAlex.
 
 ## Status atual
 
-Agente 1 V1 concluído: Intake → Planner → Search (OpenAlex) → `results.csv`.
+- Agente 1 V1 concluído: Intake → Planner → Search (OpenAlex) → `results.csv`.
+- Agente 2 V1 (triagem) concluído: filtros determinísticos + juiz LLM → `screening.csv`.
 
 ## Fluxo do Agente 1
 
@@ -16,7 +17,24 @@ Agente 1 V1 concluído: Intake → Planner → Search (OpenAlex) → `results.cs
 3. **Planner** — determinístico, sem LLM: um grupo por termo-base (OR entre
    variantes PT/EN e expansões), AND entre grupos; grupos marcáveis antes de confirmar.
 4. **Search** — uma consulta booleana no OpenAlex (25 resultados), gravados com
-   upsert por `openalex_id` em `data/active_research/results.csv`.
+   upsert por `openalex_id` em `data/active_research/results.csv`
+   (inclui a coluna `retratado`).
+
+## Fluxo do Agente 2 (triagem)
+
+Menu: Manter → [2] Triar resultados.
+
+1. **Filtros determinísticos** (`screening/filtros.py`) — descarta retratados e
+   duplicatas (mesmo DOI ou mesmo título normalizado).
+2. **Juiz LLM** (`screening/juiz.py`) — um paper por vez, título + resumo. O modelo
+   responde campos simples com saída estruturada por esquema (`objeto`,
+   `mesmo_dominio`, `mesmo_problema`, `trecho`); o **veredito é decidido pelo código**:
+   domínio diferente → lixo; mesmo domínio e mesmo problema → relevante;
+   mesmo domínio e outro problema → talvez.
+3. **Saída** — `data/active_research/screening.csv` (veredito, justificativa,
+   trecho literal do resumo e confiança) e resumo por veredito no terminal.
+4. **Calibração** (`screening/calibracao.py`) — compara o juiz com
+   `gabarito.csv` (r/t/l, separador `;`) e mostra concordância e matriz.
 
 ## Como rodar
 
@@ -24,16 +42,35 @@ Requer Ollama com `qwen3:8b` e `OPENALEX_API_KEY` no `.env`.
 
     python src\main.py
 
-## Métrica de referência (26/09/2026)
+Calibração do juiz:
 
-Tema de teste com 3 termos-base (mineral, machine learning, prospecção) + foco em métodos:
-56% de resultados relevantes, 36% talvez, 8% descartáveis (classificação manual de 25 títulos).
+    python -c "import sys; sys.path.insert(0, 'src'); from agents.screening.calibracao import calibrar; calibrar()"
+
+## Métricas de referência (26–27/09/2026)
+
+Busca — tema de teste com 3 termos-base (mineral, machine learning, prospecção) + foco em métodos:
+56% relevantes, 36% talvez, 8% descartáveis (classificação manual de 25 títulos).
 Sem o conceito central do tema como termo-base, o mesmo teste deu 4%.
 
-## Limitações conhecidas (V1)
+Juiz de triagem (v3.1, gabarito de 66 papers):
+- 74% de concordância no conjunto usado para ajustar o prompt (47 papers);
+- 67% em papers novos, nunca vistos pelo juiz (18 papers);
+- 85% de precisão em "relevante"; nenhum lixo classificado como relevante;
+- determinístico (duas execuções idênticas); ~3 min para 68 papers na GPU local.
 
+Lição de método: com modelo de 8B, veredito livre (com ou sem justificativa antes)
+ficou em 38–51%; decompor em perguntas simples, forçar tipos por esquema e decidir
+no código elevou para 74%.
+
+## Limitações conhecidas
+
+Busca (V1):
 - Um conceito do tema pode não virar termo-base, sem aviso.
 - Termos-base descritivos (não pesquisáveis) passam na validação e podem zerar a busca.
-- Duplicatas da mesma obra com IDs diferentes no OpenAlex (ex.: preprint e publicado).
-- Artigos retratados não são filtrados.
 - A busca considera texto completo, não só título e resumo.
+
+Triagem (V1):
+- Duplicatas cujos títulos diferem só na pontuação (ex.: "–" e "—") não são detectadas.
+- O juiz é restritivo em `mesmo_dominio` quando o contexto varia (outro mineral,
+  outro sensor); relevantes perdidos tendem a cair em "talvez".
+- Recalibrar quando o gabarito tiver ~150 papers; teste em outro tema pendente.
