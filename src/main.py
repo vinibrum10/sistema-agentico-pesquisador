@@ -31,6 +31,9 @@ from agents.screening.juiz import (
 from agents.refino.loop import (
     executar_loop,
 )
+from agents.refino.snowball import (
+    executar_snowball,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -143,7 +146,8 @@ def manter_pesquisa(dados: dict) -> None:
         print("\n[1] Montar plano de busca")
         print("[2] Triar resultados")
         print("[3] Refinar busca (loop)")
-        print("[4] Sair")
+        print("[4] Snowballing (citações)")
+        print("[5] Sair")
 
         escolha = input("> ").strip()
 
@@ -164,6 +168,10 @@ def manter_pesquisa(dados: dict) -> None:
             return
 
         if escolha == "4":
+            executar_snowball(dados)
+            return
+
+        if escolha == "5":
             return
 
         print("\nOpção inválida.")
