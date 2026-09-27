@@ -34,6 +34,12 @@ from agents.refino.loop import (
 from agents.refino.snowball import (
     executar_snowball,
 )
+from agents.refino.automatico import (
+    executar_pesquisa_automatica,
+)
+from agents.screening.revisao import (
+    gerar_revisao,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -143,11 +149,39 @@ def manter_pesquisa(dados: dict) -> None:
         return
 
     while True:
-        print("\n[1] Montar plano de busca")
+        print("\n[1] Pesquisar (automático) — busca, triagem e snowballing")
+        print("[2] Revisar resultados — relevantes e talvez em revisao.csv")
+        print("[3] Opções avançadas — etapas manuais, uma por vez")
+        print("[4] Sair")
+
+        escolha = input("> ").strip()
+
+        if escolha == "1":
+            executar_pesquisa_automatica(dados)
+            return
+
+        if escolha == "2":
+            gerar_revisao()
+            return
+
+        if escolha == "3":
+            opcoes_avancadas(dados)
+            continue
+
+        if escolha == "4":
+            return
+
+        print("\nOpção inválida.")
+
+
+def opcoes_avancadas(dados: dict) -> None:
+    while True:
+        print("\n=== Opções avançadas ===")
+        print("[1] Montar plano de busca (manual)")
         print("[2] Triar resultados")
         print("[3] Refinar busca (loop)")
-        print("[4] Snowballing (citações)")
-        print("[5] Sair")
+        print("[4] Snowballing (uma rodada)")
+        print("[5] Voltar")
 
         escolha = input("> ").strip()
 
@@ -318,4 +352,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+
+    except KeyboardInterrupt:
+        print("\n\nInterrompido pelo usuário.")
+        print(
+            "Etapas concluídas ficam salvas; "
+            "a triagem em andamento é refeita na próxima execução."
+        )
