@@ -12,6 +12,7 @@ REVIEW_FILE = ACTIVE_RESEARCH_DIR / "revisao.csv"
 
 COLUNAS = [
     "veredito",
+    "tem_resumo",
     "titulo",
     "ano",
     "citacoes",
@@ -25,7 +26,7 @@ ORDEM = {"relevante": 0, "talvez": 1}
 
 
 def gerar_revisao():
-    """Relevantes primeiro, depois talvez; em cada grupo, os mais citados primeiro."""
+    """Relevantes primeiro, depois talvez; em cada grupo, com resumo antes e os mais citados primeiro."""
 
     if not SCREENING_FILE.exists():
         print("\nNenhuma triagem ainda: rode a pesquisa primeiro.")
@@ -49,6 +50,7 @@ def gerar_revisao():
         linhas.append(
             {
                 "veredito": triado["veredito"],
+                "tem_resumo": "sim" if paper.get("abstract", "").strip() else "não",
                 "titulo": triado["titulo"],
                 "ano": paper.get("ano", ""),
                 "citacoes": paper.get("citacoes", ""),
@@ -62,6 +64,7 @@ def gerar_revisao():
     linhas.sort(
         key=lambda linha: (
             ORDEM[linha["veredito"]],
+            linha["tem_resumo"] != "sim",
             -int(linha["citacoes"] or 0),
         )
     )
@@ -81,9 +84,14 @@ def gerar_revisao():
 
     contagem = Counter(linha["veredito"] for linha in linhas)
 
+    sem_resumo = sum(
+        linha["veredito"] == "talvez" and linha["tem_resumo"] != "sim"
+        for linha in linhas
+    )
+
     print(
         f"\nRevisão: {contagem['relevante']} relevantes "
-        f"e {contagem['talvez']} talvez"
+        f"e {contagem['talvez']} talvez ({sem_resumo} sem resumo, no fim da lista)"
     )
     print(f"Arquivo: {REVIEW_FILE}")
 
