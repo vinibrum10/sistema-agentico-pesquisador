@@ -171,29 +171,34 @@ def escolher_ajuste(dados: dict, plano: dict, consulta: str) -> tuple:
 
 def executar_loop(
     dados: dict,
-    meta: float = 0.5,
+    piso: float = 0.3,
     max_rodadas: int = 3,
 ) -> dict:
-    """Trabalha numa cópia do plano; o context.json não é alterado."""
+    """
+    Objetivo: o máximo de relevantes com precisão >= piso.
+    Abaixo do piso, aplica um ajuste (remoção) por rodada.
+    Trabalha numa cópia do plano; o context.json não é alterado.
+    """
 
     plano = montar_plano(dados)
     ajuste = motivo = ""
-    melhor = None
+    rodadas = []
 
     for rodada in range(1, max_rodadas + 1):
         linha = executar_rodada(dados, plano, rodada, ajuste, motivo)
-        precisao = float(linha["precisao"])
 
-        if melhor is None or precisao > melhor["precisao"]:
-            melhor = {
+        rodadas.append(
+            {
                 "rodada": rodada,
-                "precisao": precisao,
+                "precisao": float(linha["precisao"]),
+                "relevantes": linha["relevante"],
                 "consulta": linha["consulta"],
                 "plano": copy.deepcopy(plano),
             }
+        )
 
-        if precisao >= meta:
-            print(f"\nMeta de {meta:.0%} atingida na rodada {rodada}.")
+        if rodadas[-1]["precisao"] >= piso:
+            print(f"\nPrecisão acima do piso de {piso:.0%} na rodada {rodada}.")
             break
 
         if rodada == max_rodadas:
@@ -207,15 +212,20 @@ def executar_loop(
 
         print(f"Ajuste para a rodada {rodada + 1}: {ajuste} ({motivo})")
 
-    if melhor["precisao"] < meta:
+    validas = [r for r in rodadas if r["precisao"] >= piso]
+
+    if validas:
+        melhor = max(validas, key=lambda r: (r["relevantes"], r["precisao"]))
+    else:
+        melhor = max(rodadas, key=lambda r: r["precisao"])
         print(
-            f"\nATENÇÃO: meta de {meta:.0%} não atingida. "
+            f"\nATENÇÃO: nenhuma rodada atingiu o piso de {piso:.0%}. "
             "Decisão do pesquisador necessária."
         )
 
     print(
         f"\nMelhor rodada: {melhor['rodada']} "
-        f"(precisão {melhor['precisao']:.0%})"
+        f"({melhor['relevantes']} relevantes, precisão {melhor['precisao']:.0%})"
     )
     print(f"Consulta: {melhor['consulta']}")
     print(f"Registro: {LOOP_LOG_FILE}")
