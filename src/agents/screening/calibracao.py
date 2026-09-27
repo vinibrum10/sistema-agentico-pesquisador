@@ -43,3 +43,25 @@ def calibrar() -> None:
             if g == rotulo
         )
         print(f"  {rotulo}: {detalhe}")
+
+    # Métricas de triagem: perder um relevante é o erro mais caro.
+    relevantes = sum(n for (g, j), n in pares.items() if g == "relevante")
+    perdidos = pares[("relevante", "lixo")]
+    excluidos = sum(
+        n for (g, j), n in pares.items() if j in ("lixo", "descartado")
+    )
+
+    if relevantes:
+        print(
+            f"\nEvidência perdida (relevante -> lixo): "
+            f"{perdidos}/{relevantes} ({perdidos / relevantes:.0%})"
+        )
+        print(
+            f"Recall (relevante mantido como relevante ou talvez): "
+            f"{(relevantes - perdidos) / relevantes:.0%}"
+        )
+
+    print(
+        f"Redução de trabalho (lixo + descartado): "
+        f"{excluidos}/{total} ({excluidos / total:.0%})"
+    )
