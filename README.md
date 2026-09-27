@@ -9,6 +9,7 @@ Modelo local via Ollama (`qwen3:8b`, GPU local); busca científica no OpenAlex.
 - Agente 2 V1 (triagem) concluído: filtros determinísticos + juiz LLM → `screening.csv`.
 - Loop de refinamento V1 concluído: rodadas de busca + triagem com ajustes
   determinísticos → `loop_log.csv`.
+- Próximo: V2 do loop por snowballing de citações a partir dos papers relevantes.
 
 ## Fluxo do Agente 1
 
@@ -18,16 +19,19 @@ Modelo local via Ollama (`qwen3:8b`, GPU local); busca científica no OpenAlex.
    (apaga tudo, sem histórico).
 3. **Planner** — determinístico, sem LLM: um grupo por termo-base (OR entre
    variantes PT/EN e expansões), AND entre grupos; grupos marcáveis antes de confirmar.
-4. **Search** — uma consulta booleana no OpenAlex (25 resultados), gravados com
-   upsert por `openalex_id` em `data/active_research/results.csv`
-   (inclui a coluna `retratado`).
+   O grupo de foco e o de geografia começam **desmarcados** (o foco é aplicado pelo
+   juiz de triagem, não pela consulta).
+4. **Search** — uma consulta booleana no OpenAlex (`search`: título, resumo e texto
+   completo), **50 resultados**, gravados com upsert por `openalex_id` em
+   `data/active_research/results.csv` (inclui a coluna `retratado`).
 
 ## Fluxo do Agente 2 (triagem)
 
 Menu: Manter → [2] Triar resultados.
 
 1. **Filtros determinísticos** (`screening/filtros.py`) — descarta retratados e
-   duplicatas (mesmo DOI ou mesmo título normalizado).
+   duplicatas (mesmo DOI ou mesmo título normalizado, ignorando pontuação).
+   Os descartes são recalculados a cada triagem e valem também para papers já triados.
 2. **Juiz LLM** (`screening/juiz.py`) — um paper por vez, título + resumo. O modelo
    responde campos simples com saída estruturada por esquema (`objeto`,
    `mesmo_dominio`, `mesmo_problema`, `trecho`); o **veredito é decidido pelo código**:
@@ -38,22 +42,25 @@ Menu: Manter → [2] Triar resultados.
 4. **Saída** — `data/active_research/screening.csv` (veredito, justificativa,
    trecho literal do resumo e confiança) e resumo por veredito no terminal.
 5. **Calibração** (`screening/calibracao.py`) — compara o juiz com
-   `gabarito.csv` (r/t/l, separador `;`) e mostra concordância e matriz.
+   `gabarito.csv` (r/t/l, separador `;`): concordância, matriz, **evidência perdida**
+   (relevante → lixo), recall e redução de trabalho.
 
 ## Loop de refinamento (V1)
 
 Menu: Manter → [3] Refinar busca (loop).
 
+- Objetivo: **o máximo de relevantes** com precisão ≥ piso (padrão 30%).
 - Trabalha numa **cópia** do plano; o `context.json` nunca é alterado.
 - Cada rodada: busca → triagem incremental → precisão da consulta
   (relevantes ÷ papers válidos da rodada) → linha em `loop_log.csv`.
-- Abaixo da meta, aplica **um** ajuste por rodada, nesta prioridade:
+- Abaixo do piso, aplica **um** ajuste por rodada, nesta prioridade:
   1. remover a expansão presente em ≥ 2 papers "lixo" da rodada (e em mais lixo
      que relevantes) — termos-base nunca são removidos;
   2. desmarcar o grupo de foco.
-- Para quando: meta atingida (padrão 50%), limite de rodadas (padrão 3) ou
-  nenhum ajuste disponível. Sem meta → aviso "decisão do pesquisador necessária".
-- Mostra a **melhor** rodada e a consulta; adotar é decisão do pesquisador (menu Ajustar).
+- Para quando: piso atingido, limite de rodadas (padrão 3) ou nenhum ajuste
+  disponível. Nenhuma rodada no piso → aviso "decisão do pesquisador necessária".
+- Melhor rodada = mais relevantes entre as que respeitam o piso; adotar a consulta
+  é decisão do pesquisador (menu Ajustar).
 
 ## Como rodar
 
@@ -67,39 +74,52 @@ Calibração do juiz:
 
 ## Métricas de referência (26–27/09/2026)
 
-Busca — tema de teste com 3 termos-base (mineral, machine learning, prospecção) + foco em métodos:
-56% relevantes, 36% talvez, 8% descartáveis (classificação manual de 25 títulos).
-Sem o conceito central do tema como termo-base, o mesmo teste deu 4%.
+Busca — tema de teste com 3 termos-base (mineral, machine learning, prospecção):
+
+| Configuração | Papers | Relevantes (juiz) | Precisão |
+|---|---|---|---|
+| Texto completo, 25 resultados, com foco | 25 | 12 | 50% |
+| Título + resumo, com foco | 13 | 7 | 58% |
+| Título + resumo, sem foco | 15 | 7 | 50% |
+| Texto completo, 50 resultados, com foco | 50 | 19 | 39% |
+| **Texto completo, 50 resultados, sem foco (padrão atual)** | 50 | **20** | 41% |
+
+Título + resumo alinharia busca e juiz, mas estreita demais (perde evidência);
+o texto completo com mais resultados encontra mais relevantes e a triagem filtra.
+Sem o conceito central do tema como termo-base, a busca inicial deu 4%.
 
 Juiz de triagem (v3.1, gabarito de 66 papers):
-- 74% de concordância no conjunto usado para ajustar o prompt (47 papers);
-- 67% em papers novos, nunca vistos pelo juiz (18 papers);
+- **evidência perdida (relevante → lixo): 12%; recall (relevante mantido como
+  relevante ou talvez): 88%; redução de trabalho (lixo + descartado): 42%**;
+- concordância: 74% no conjunto usado para ajustar o prompt (47 papers);
+  67% em papers novos (18); 70% no total após re-execução completa;
 - 85% de precisão em "relevante"; nenhum lixo classificado como relevante;
-- quase determinístico: execuções seguidas deram vereditos idênticos, mas uma
-  triagem completa posterior variou ~3 de 68 vereditos (concordância global 70%);
-- ~3 min para 68 papers na GPU local.
+- quase determinístico: execuções seguidas idênticas; uma triagem completa
+  posterior variou ~3 de 68 vereditos;
+- ~2–3 s por paper na GPU local.
 
-Loop V1 — mesma pesquisa: rodada 1 com 50% de precisão (juiz); desmarcar o grupo
-de foco trouxe só 1 paper novo e manteve 50% (o grupo de foco praticamente não filtra).
+Referência externa: Llama 3 70B teve 77,5% de sensibilidade em triagem de
+título/resumo (Research Synthesis Methods). Em triagem, a métrica principal é a
+evidência perdida, não a acurácia (LLM4SCREENLIT, 2025).
 
 Lição de método: com modelo de 8B, veredito livre (com ou sem justificativa antes)
-ficou em 38–51%; decompor em perguntas simples, forçar tipos por esquema e decidir
-no código elevou para 74%.
+ficou em 38–51% de concordância; decompor em perguntas simples, forçar tipos por
+esquema e decidir no código elevou para 74%.
 
 ## Limitações conhecidas
 
 Busca (V1):
 - Um conceito do tema pode não virar termo-base, sem aviso.
 - Termos-base descritivos (não pesquisáveis) passam na validação e podem zerar a busca.
-- A busca considera texto completo, não só título e resumo.
+- Sinônimos da técnica (ex.: "random forest", "deep learning") não entram sozinhos
+  no grupo de ML; a V2 (snowballing) deve compensar parte disso.
 
 Triagem (V1):
-- Duplicatas cujos títulos diferem só na pontuação (ex.: "–" e "—") não são detectadas.
 - O juiz é restritivo em `mesmo_dominio` quando o contexto varia (outro mineral,
   outro sensor); relevantes perdidos tendem a cair em "talvez".
 - Recalibrar quando o gabarito tiver ~150 papers; teste em outro tema pendente.
 
 Loop (V1):
-- Só remove (expansões, grupo de foco): limpa consulta ruim, mas não melhora uma
-  consulta razoável. A V2 deve propor termos novos a partir dos papers relevantes.
+- Só remove (expansões, grupo de foco): limpa consulta ruim, mas não encontra
+  papers além da consulta. A V2 por snowballing deve ampliar o recall.
 - `loop_log.csv` acumula execuções; distinguir pela coluna `data_hora`.
