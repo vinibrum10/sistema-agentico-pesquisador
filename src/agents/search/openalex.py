@@ -43,7 +43,7 @@ def montar_consulta(plano):
     return " AND ".join(partes)
 
 
-def buscar(consulta, n=25):
+def buscar(consulta, n=50):
     """Uma consulta, n resultados, sem paginação. Zero resultados = lista vazia (válido)."""
     return Works().search(consulta).get(per_page=n)
 
