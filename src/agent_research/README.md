@@ -27,7 +27,11 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 - papers já julgados não voltam ao LLM ("erro" é julgado de novo); para retriar tudo,
   apague `screening.csv`;
 - se o tema, o objetivo ou o foco mudarem (`triagem_contexto.json`), todos os vereditos
-  são refeitos na próxima triagem; os papers já encontrados e a deduplicação permanecem.
+  são refeitos na próxima triagem; os papers já encontrados e a deduplicação permanecem;
+- `screening.csv` é gravado a cada paper julgado: Ctrl+C ou uma falha não perdem o que já
+  foi julgado, e a triagem continua de onde parou;
+- JSON inválido do modelo marca só aquele paper como "erro"; Ollama fora do ar ou modelo
+  ausente interrompe a triagem com uma mensagem clara.
 
 ## Como usar
 
@@ -47,8 +51,9 @@ Só 5 dos 66 do gabarito não têm resumo, contra 143 de 300 no corpus.
 ## Limitações
 
 - O gabarito subestima papers sem resumo; recalibrar depois de ampliá-lo.
-- O modo automático não trata falhas de Ollama ou OpenAlex (uma queda interrompe a execução).
-- `executar_triagem` só grava `screening.csv` no fim; uma interrupção perde a triagem da execução.
+- Falhas do OpenAlex (429, 500, 503) têm 3 novas tentativas com espera; depois a etapa
+  para com mensagem, e rodar de novo continua (a busca é upsert e a triagem é retomada).
+- Com `screening.csv` aberto no Excel, a gravação falha (Windows bloqueia o arquivo).
 - O upsert em `results.csv` substitui a linha inteira e sobrescreve `consulta_origem` e `data_run`.
 - O juiz é restritivo em `mesmo_dominio` quando o contexto varia; relevantes perdidos tendem a cair em "talvez".
 - `loop_log.csv` acumula execuções; distinguir pela coluna `data_hora`.

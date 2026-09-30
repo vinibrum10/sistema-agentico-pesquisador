@@ -163,6 +163,31 @@ def triagem_desatualizada(oficial: dict) -> bool:
     return gravado != contexto_do_juiz(oficial)
 
 
+def gravar_triagem(linhas: list, por_id: dict, oficial: dict) -> list:
+    """Grava screening.csv (por troca de arquivo) e o contexto usado; devolve as linhas gravadas."""
+    saida = [
+        por_id[linha["openalex_id"]]
+        for linha in linhas
+        if linha["openalex_id"] in por_id
+    ]
+
+    temporario = SCREENING_FILE.with_name(SCREENING_FILE.name + ".tmp")
+
+    with open(temporario, "w", encoding="utf-8-sig", newline="") as f:
+        escritor = csv.DictWriter(f, fieldnames=COLUNAS)
+        escritor.writeheader()
+        escritor.writerows(saida)
+
+    temporario.replace(SCREENING_FILE)
+
+    CONTEXTO_TRIAGEM_FILE.write_text(
+        json.dumps(contexto_do_juiz(oficial), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    return saida
+
+
 def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
@@ -174,49 +199,50 @@ def executar_triagem(dados: dict):
         print(f"Os {len(anteriores)} vereditos anteriores serão refeitos.")
         anteriores = {}
 
-    saida = []
+    # Quem nao precisa do LLM ja entra: a gravacao parcial nao perde vereditos.
+    por_id = {}
+
+    for linha in linhas:
+        pid = linha["openalex_id"]
+
+        # Descartes sao recalculados sempre: valem tambem para papers ja triados.
+        if pid in descartes:
+            por_id[pid] = linha_sem_llm(linha, "descartado", descartes[pid])
+        elif pid in anteriores:
+            por_id[pid] = anteriores[pid]
+
     novos = 0
 
     for numero, linha in enumerate(linhas, start=1):
-        # Descartes sao recalculados sempre: valem tambem para papers ja triados.
-        if linha["openalex_id"] in descartes:
-            saida.append(
-                linha_sem_llm(
-                    linha,
-                    "descartado",
-                    descartes[linha["openalex_id"]],
-                )
-            )
-            continue
+        pid = linha["openalex_id"]
 
-        if linha["openalex_id"] in anteriores:
-            saida.append(anteriores[linha["openalex_id"]])
+        if pid in por_id:
             continue
 
         novos += 1
         print(f"[{numero}/{len(linhas)}] {linha['titulo'][:70]}")
 
         try:
-            saida.append(julgar(modelo, dados["oficial"], linha))
+            por_id[pid] = julgar(modelo, dados["oficial"], linha)
 
         except json.JSONDecodeError:
-            saida.append(
-                linha_sem_llm(
-                    linha,
-                    "erro",
-                    "modelo não retornou JSON válido",
-                )
+            por_id[pid] = linha_sem_llm(
+                linha,
+                "erro",
+                "modelo não retornou JSON válido",
             )
 
-    with open(SCREENING_FILE, "w", encoding="utf-8-sig", newline="") as f:
-        escritor = csv.DictWriter(f, fieldnames=COLUNAS)
-        escritor.writeheader()
-        escritor.writerows(saida)
+        except Exception as erro:
+            raise RuntimeError(
+                f"falha ao chamar o modelo local ({erro}). "
+                f"Confirme que o Ollama está em execução e que o modelo "
+                f"{modelo.model} está instalado. "
+                "Os vereditos já gravados foram mantidos."
+            ) from erro
 
-    CONTEXTO_TRIAGEM_FILE.write_text(
-        json.dumps(contexto_do_juiz(dados["oficial"]), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+        gravar_triagem(linhas, por_id, dados["oficial"])
+
+    saida = gravar_triagem(linhas, por_id, dados["oficial"])
 
     resumo = {}
     for linha in saida:

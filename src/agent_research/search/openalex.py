@@ -12,6 +12,8 @@ from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR
 
 load_dotenv()
 pyalex.config.api_key = os.getenv("OPENALEX_API_KEY")
+pyalex.config.max_retries = 3  # novas tentativas em 429, 500 e 503
+pyalex.config.retry_backoff_factor = 0.5
 
 RESULTS_FILE = ACTIVE_RESEARCH_DIR / "results.csv"
 COLUNAS = ["openalex_id", "doi", "titulo", "ano", "venue", "citacoes", "retratado", "abstract", "consulta_origem", "data_run"]

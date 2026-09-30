@@ -163,6 +163,22 @@ def executar_busca(plano: dict) -> None:
     print(f"Total acumulado em results.csv: {total}")
 
 
+def rodar_etapa(etapa, *args) -> None:
+    """Roda uma etapa longa; se falhar, o que já foi gravado fica e basta rodar de novo."""
+    try:
+        etapa(*args)
+
+    except Exception as erro:
+        detalhe = (
+            str(erro)
+            if isinstance(erro, RuntimeError)
+            else f"{type(erro).__name__}: {erro}"
+        )
+        print("\nA etapa parou por um erro.")
+        print(f"Erro: {detalhe}")
+        print("O que já foi gravado foi mantido; rode a etapa de novo para continuar.")
+
+
 def manter_pesquisa(dados: dict) -> None:
     mostrar_contexto_final(
         contexto_para_exibicao(dados),
@@ -184,7 +200,7 @@ def manter_pesquisa(dados: dict) -> None:
         escolha = input("> ").strip()
 
         if escolha == "1":
-            executar_pesquisa_automatica(dados)
+            rodar_etapa(executar_pesquisa_automatica, dados)
             return
 
         if escolha == "2":
@@ -221,15 +237,15 @@ def opcoes_avancadas(dados: dict) -> None:
             return
 
         if escolha == "2":
-            executar_triagem(dados)
+            rodar_etapa(executar_triagem, dados)
             return
 
         if escolha == "3":
-            executar_loop(dados)
+            rodar_etapa(executar_loop, dados)
             return
 
         if escolha == "4":
-            executar_snowball(dados)
+            rodar_etapa(executar_snowball, dados)
             return
 
         if escolha == "5":
@@ -393,6 +409,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n\nInterrompido pelo usuário.")
         print(
-            "Etapas concluídas ficam salvas; "
-            "a triagem em andamento é refeita na próxima execução."
+            "O que já foi gravado fica salvo. "
+            "Se havia uma triagem em andamento, ela continua de onde parou "
+            "na próxima execução."
         )
