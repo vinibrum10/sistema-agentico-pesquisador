@@ -33,11 +33,13 @@ def buscar_por_ids(ids: list, campos: list | None = None) -> list:
 
 
 def sementes() -> list:
+    """Relevantes do tema atual; vereditos de outro tema (tema_confirmado = não) nao valem."""
     with open(SCREENING_FILE, encoding="utf-8-sig", newline="") as f:
         return [
             linha["openalex_id"]
             for linha in csv.DictReader(f)
             if linha["veredito"] == "relevante"
+            and linha.get("tema_confirmado") in (None, "", "sim")
         ]
 
 
@@ -77,6 +79,13 @@ def coletar_candidatos(min_ligacoes: int = 2, maximo: int = 50) -> list:
 
 def executar_snowball(dados: dict, min_ligacoes: int = 2, maximo: int = 50) -> dict:
     """Uma rodada: candidatos por citação → results.csv → triagem → loop_log.csv."""
+
+    if not sementes():
+        print(
+            "\nNenhuma semente com o tema confirmado. "
+            "Reavalie a triagem antes (Avançado → triagem)."
+        )
+        return {}
 
     candidatos = coletar_candidatos(min_ligacoes, maximo)
 

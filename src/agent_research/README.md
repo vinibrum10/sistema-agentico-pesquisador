@@ -31,6 +31,10 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 - até serem refeitos, os vereditos antigos ficam gravados com `tema_confirmado` = `não`;
   ao serem refeitos viram `sim` e o veredito que tinham vai para `veredito_anterior`
   (uma geração só);
+- ao ajustar tema, objetivo ou foco, o menu pergunta "reavaliar agora" (refaz a triagem e
+  mostra o resumo anterior → atual, destacando relevante → lixo) ou "depois" (só marca os
+  vereditos com `tema_confirmado` = `não`, sem chamar o modelo);
+- o snowball só usa como semente relevantes com `tema_confirmado` = `sim`;
 - `screening.csv` é gravado a cada paper julgado: Ctrl+C ou uma falha não perdem o que já
   foi julgado, e a triagem continua de onde parou;
 - JSON inválido do modelo marca só aquele paper como "erro"; Ollama fora do ar ou modelo

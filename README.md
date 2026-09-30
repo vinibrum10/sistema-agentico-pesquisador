@@ -20,7 +20,7 @@ Requer Ollama com `qwen3:8b` e `OPENALEX_API_KEY` no `.env`.
 
     python src\main.py
 
-Menu inicial (pesquisa ativa): [1] Manter · [2] Ajustar (um campo por vez) ·
+Menu inicial (pesquisa ativa): [1] Manter · [2] Ajustar (um campo por vez; se tema, objetivo ou foco mudam, pergunta se reavalia a triagem agora ou depois) ·
 [3] Começar pesquisa nova (apaga tudo em `data/active_research/`; antes, oferece backup em zip em `data/backups/`).
 
 Ao manter a pesquisa:

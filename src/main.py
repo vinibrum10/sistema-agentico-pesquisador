@@ -27,6 +27,7 @@ from agent_research.search.openalex import (
 )
 from agent_research.screening.juiz import (
     executar_triagem,
+    marcar_triagem_desatualizada,
     triagem_desatualizada,
 )
 from agent_research.refino.loop import (
@@ -163,6 +164,34 @@ def executar_busca(plano: dict) -> None:
     print(f"Total acumulado em results.csv: {total}")
 
 
+def decidir_reavaliacao() -> None:
+    """Depois de mudar tema, objetivo ou foco: refazer os vereditos agora ou depois."""
+    print(
+        "\nO tema, o objetivo ou o foco mudaram. "
+        "Os vereditos da triagem foram dados para o contexto anterior."
+    )
+    print("[1] Reavaliar agora (usa o Ollama; pode levar alguns minutos)")
+    print("[2] Reavaliar depois (vereditos antigos ficam com tema_confirmado = não)")
+
+    while True:
+        escolha = input("\nEscolha 1 ou 2: ").strip()
+
+        if escolha == "1":
+            rodar_etapa(executar_triagem, carregar_contexto())
+            return
+
+        if escolha == "2":
+            total = marcar_triagem_desatualizada()
+            print(
+                f"\n{total} vereditos marcados como de outro tema. "
+                "Serão refeitos na próxima triagem; até lá o snowball "
+                "não usa esses vereditos como semente."
+            )
+            return
+
+        print("\nOpção inválida. Escolha 1 ou 2.")
+
+
 def rodar_etapa(etapa, *args) -> None:
     """Roda uma etapa longa; se falhar, o que já foi gravado fica e basta rodar de novo."""
     try:
@@ -290,11 +319,7 @@ def main() -> None:
                     ajustar_pesquisa(dados)
                     and triagem_desatualizada(carregar_contexto()["oficial"])
                 ):
-                    print(
-                        "\nAVISO: o tema, o objetivo ou o foco mudaram. "
-                        "Os vereditos da triagem atual foram dados para o contexto "
-                        "anterior e serão refeitos na próxima triagem."
-                    )
+                    decidir_reavaliacao()
 
             except json.JSONDecodeError as erro:
                 print(

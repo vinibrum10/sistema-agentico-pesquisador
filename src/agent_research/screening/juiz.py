@@ -205,6 +205,75 @@ def gravar_triagem(linhas: list, por_id: dict, oficial: dict) -> list:
     return saida
 
 
+def marcar_triagem_desatualizada() -> int:
+    """Reavaliar depois: marca os vereditos como de outro tema, sem chamar o modelo.
+
+    Devolve quantos vereditos foram marcados. O contexto gravado em
+    triagem_contexto.json nao muda, entao a proxima triagem refaz tudo.
+    """
+    gravadas = carregar_triagem(incluir_erros=True)
+
+    if not gravadas:
+        return 0
+
+    marcados = 0
+
+    for linha in gravadas.values():
+        if linha["veredito"] != "descartado":
+            linha["tema_confirmado"] = "não"
+            marcados += 1
+
+        linha.setdefault("veredito_anterior", "")
+
+    temporario = SCREENING_FILE.with_name(SCREENING_FILE.name + ".tmp")
+
+    with open(temporario, "w", encoding="utf-8-sig", newline="") as f:
+        escritor = csv.DictWriter(f, fieldnames=COLUNAS)
+        escritor.writeheader()
+        escritor.writerows(gravadas.values())
+
+    temporario.replace(SCREENING_FILE)
+
+    return marcados
+
+
+def mostrar_transicoes(saida: list) -> None:
+    """Resumo "anterior -> atual" dos papers refeitos (le o veredito_anterior gravado)."""
+    mudancas = {}
+    iguais = 0
+    caiu = []
+
+    for linha in saida:
+        antes = linha.get("veredito_anterior") or ""
+
+        if linha.get("tema_confirmado") != "sim" or not antes:
+            continue
+
+        if antes == linha["veredito"]:
+            iguais += 1
+            continue
+
+        mudancas[(antes, linha["veredito"])] = mudancas.get((antes, linha["veredito"]), 0) + 1
+
+        if antes == "relevante" and linha["veredito"] == "lixo":
+            caiu.append(linha["titulo"])
+
+    print("\n=== Mudanças de veredito (anterior → atual) ===")
+    print(f"Sem mudança: {iguais}")
+
+    for (antes, agora), total in sorted(mudancas.items(), key=lambda m: -m[1]):
+        destaque = "   <-- revise" if (antes, agora) == ("relevante", "lixo") else ""
+        print(f"{antes} → {agora}: {total}{destaque}")
+
+    for titulo in caiu[:10]:
+        print(f"  relevante → lixo: {titulo[:80]}")
+
+    if len(caiu) > 10:
+        print(f"  ... e mais {len(caiu) - 10}")
+
+    print("Para ver só os que mudaram, filtre `veredito_anterior` no screening.csv.")
+
+
 def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
@@ -216,6 +285,10 @@ def executar_triagem(dados: dict):
         if antiga["veredito"] != "erro"
     }
     desatualizada = bool(anteriores) and triagem_desatualizada(dados["oficial"])
+    # Tambem vale para a retomada de uma reavaliacao interrompida (restam vereditos "não").
+    refazendo = desatualizada or any(
+        antiga.get("tema_confirmado") == "não" for antiga in anteriores.values()
+    )
 
     if desatualizada:
         print("\nO tema, o objetivo ou o foco mudaram desde a última triagem.")
@@ -286,5 +359,8 @@ def executar_triagem(dados: dict):
     print(f"Papers novos triados: {novos}")
     for veredito, total in sorted(resumo.items()):
         print(f"{veredito}: {total}")
+
+    if refazendo:
+        mostrar_transicoes(saida)
 
     return SCREENING_FILE
