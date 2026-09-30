@@ -11,6 +11,7 @@ from core.texto import normalizar_texto
 
 
 SCREENING_FILE = ACTIVE_RESEARCH_DIR / "screening.csv"
+CONTEXTO_TRIAGEM_FILE = ACTIVE_RESEARCH_DIR / "triagem_contexto.json"
 
 COLUNAS = [
     "openalex_id",
@@ -140,11 +141,39 @@ def carregar_triagem() -> dict:
         }
 
 
+def contexto_do_juiz(oficial: dict) -> dict:
+    """O que o juiz usa do contexto: se mudar, os vereditos antigos deixam de valer."""
+    return {
+        "tema": oficial["tema"],
+        "objetivo": oficial["objetivo"],
+        "foco": oficial["foco"],
+    }
+
+
+def triagem_desatualizada(oficial: dict) -> bool:
+    """True se a triagem gravada foi feita com outro tema, objetivo ou foco."""
+    if not SCREENING_FILE.exists() or not CONTEXTO_TRIAGEM_FILE.exists():
+        return False
+
+    try:
+        gravado = json.loads(CONTEXTO_TRIAGEM_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return True
+
+    return gravado != contexto_do_juiz(oficial)
+
+
 def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
     modelo = criar_juiz()
     anteriores = carregar_triagem()
+
+    if anteriores and triagem_desatualizada(dados["oficial"]):
+        print("\nO tema, o objetivo ou o foco mudaram desde a última triagem.")
+        print(f"Os {len(anteriores)} vereditos anteriores serão refeitos.")
+        anteriores = {}
+
     saida = []
     novos = 0
 
@@ -183,6 +212,11 @@ def executar_triagem(dados: dict):
         escritor = csv.DictWriter(f, fieldnames=COLUNAS)
         escritor.writeheader()
         escritor.writerows(saida)
+
+    CONTEXTO_TRIAGEM_FILE.write_text(
+        json.dumps(contexto_do_juiz(dados["oficial"]), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
     resumo = {}
     for linha in saida:

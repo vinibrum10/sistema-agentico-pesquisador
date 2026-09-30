@@ -27,6 +27,7 @@ from agent_research.search.openalex import (
 )
 from agent_research.screening.juiz import (
     executar_triagem,
+    triagem_desatualizada,
 )
 from agent_research.refino.loop import (
     executar_loop,
@@ -269,7 +270,15 @@ def main() -> None:
 
         if acao == "ajustar":
             try:
-                ajustar_pesquisa(dados)
+                if (
+                    ajustar_pesquisa(dados)
+                    and triagem_desatualizada(carregar_contexto()["oficial"])
+                ):
+                    print(
+                        "\nAVISO: o tema, o objetivo ou o foco mudaram. "
+                        "Os vereditos da triagem atual foram dados para o contexto "
+                        "anterior e serão refeitos na próxima triagem."
+                    )
 
             except json.JSONDecodeError as erro:
                 print(

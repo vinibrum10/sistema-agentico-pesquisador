@@ -25,7 +25,9 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 - mesmo domínio e outro problema → talvez;
 - paper sem resumo nunca vira lixo;
 - papers já julgados não voltam ao LLM ("erro" é julgado de novo); para retriar tudo,
-  apague `screening.csv`.
+  apague `screening.csv`;
+- se o tema, o objetivo ou o foco mudarem (`triagem_contexto.json`), todos os vereditos
+  são refeitos na próxima triagem; os papers já encontrados e a deduplicação permanecem.
 
 ## Como usar
 
