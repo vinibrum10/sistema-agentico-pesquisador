@@ -3,8 +3,8 @@
 import csv
 from collections import Counter
 
-from agent_research.screening.juiz import SCREENING_FILE
-from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR
+from agent_research.screening.juiz import SCREENING_FILE, triagem_desatualizada
+from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, carregar_contexto
 
 
 GABARITO_FILE = ACTIVE_RESEARCH_DIR / "gabarito.csv"
@@ -20,10 +20,22 @@ def calibrar() -> None:
         }
 
     with open(SCREENING_FILE, encoding="utf-8-sig", newline="") as f:
-        juiz = {
-            linha["openalex_id"]: linha["veredito"]
-            for linha in csv.DictReader(f)
-        }
+        triados = list(csv.DictReader(f))
+
+    juiz = {linha["openalex_id"]: linha["veredito"] for linha in triados}
+
+    de_outro_tema = sum(
+        linha.get("tema_confirmado") == "não" and linha["veredito"] != "erro"
+        for linha in triados
+    )
+
+    if de_outro_tema or triagem_desatualizada(carregar_contexto()["oficial"]):
+        print(
+            "\nAVISO: a triagem é de outro tema, objetivo ou foco "
+            f"({de_outro_tema} vereditos com tema_confirmado = não). "
+            "A concordância abaixo não vale para o contexto atual; "
+            "reavalie a triagem antes."
+        )
 
     pares = Counter(
         (rotulo, juiz.get(pid, "ausente"))

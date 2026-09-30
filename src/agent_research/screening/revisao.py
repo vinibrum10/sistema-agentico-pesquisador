@@ -12,6 +12,8 @@ REVIEW_FILE = ACTIVE_RESEARCH_DIR / "revisao.csv"
 
 COLUNAS = [
     "veredito",
+    "tema_confirmado",
+    "veredito_anterior",
     "tem_resumo",
     "titulo",
     "ano",
@@ -50,6 +52,8 @@ def gerar_revisao():
         linhas.append(
             {
                 "veredito": triado["veredito"],
+                "tema_confirmado": triado.get("tema_confirmado") or "sim",
+                "veredito_anterior": triado.get("veredito_anterior") or "",
                 "tem_resumo": "sim" if paper.get("abstract", "").strip() else "não",
                 "titulo": triado["titulo"],
                 "ano": paper.get("ano", ""),
@@ -94,5 +98,13 @@ def gerar_revisao():
         f"e {contagem['talvez']} talvez ({sem_resumo} sem resumo, no fim da lista)"
     )
     print(f"Arquivo: {REVIEW_FILE}")
+
+    de_outro_tema = sum(linha["tema_confirmado"] == "não" for linha in linhas)
+
+    if de_outro_tema:
+        print(
+            f"\nAVISO: {de_outro_tema} destes vereditos são de um tema anterior "
+            "(tema_confirmado = não). Reavalie a triagem antes de confiar neles."
+        )
 
     return REVIEW_FILE
