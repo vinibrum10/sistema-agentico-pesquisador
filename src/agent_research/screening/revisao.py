@@ -3,8 +3,8 @@
 import csv
 from collections import Counter
 
-from agents.screening.juiz import SCREENING_FILE
-from agents.search.openalex import RESULTS_FILE
+from agent_research.screening.juiz import SCREENING_FILE
+from agent_research.search.openalex import RESULTS_FILE
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR
 
 

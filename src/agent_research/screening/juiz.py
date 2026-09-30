@@ -5,7 +5,7 @@ import json
 
 from langchain_ollama import ChatOllama
 
-from agents.screening.filtros import carregar_resultados, filtrar
+from agent_research.screening.filtros import carregar_resultados, filtrar
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, ROTULOS_FOCO
 from core.texto import normalizar_texto
 

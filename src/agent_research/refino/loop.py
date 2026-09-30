@@ -4,9 +4,9 @@ import copy
 import csv
 from datetime import datetime
 
-from agents.planner.planner import montar_plano
-from agents.screening.juiz import SCREENING_FILE, executar_triagem
-from agents.search.openalex import (
+from agent_research.planner.planner import montar_plano
+from agent_research.screening.juiz import SCREENING_FILE, executar_triagem
+from agent_research.search.openalex import (
     RESULTS_FILE,
     buscar,
     montar_consulta,

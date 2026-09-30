@@ -3,7 +3,7 @@
 import csv
 from collections import Counter
 
-from agents.screening.juiz import SCREENING_FILE
+from agent_research.screening.juiz import SCREENING_FILE
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR
 
 

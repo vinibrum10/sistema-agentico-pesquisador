@@ -2,10 +2,10 @@
 
 import json
 
-from agents.intake.ajuste import (
+from agent_intake.ajuste import (
     ajustar_pesquisa,
 )
-from agents.intake.intake import (
+from agent_intake.intake import (
     analisar_contexto_oficial,
     confirmar_contexto_final,
     definir_texto_oficial,
@@ -17,27 +17,27 @@ from agents.intake.intake import (
     mostrar_termos_rejeitados,
     validar_sugestoes,
 )
-from agents.planner.planner import (
+from agent_research.planner.planner import (
     executar_planner,
 )
-from agents.search.openalex import (
+from agent_research.search.openalex import (
     buscar,
     montar_consulta,
     salvar_resultados,
 )
-from agents.screening.juiz import (
+from agent_research.screening.juiz import (
     executar_triagem,
 )
-from agents.refino.loop import (
+from agent_research.refino.loop import (
     executar_loop,
 )
-from agents.refino.snowball import (
+from agent_research.refino.snowball import (
     executar_snowball,
 )
-from agents.refino.automatico import (
+from agent_research.refino.automatico import (
     executar_pesquisa_automatica,
 )
-from agents.screening.revisao import (
+from agent_research.screening.revisao import (
     gerar_revisao,
 )
 from core.pesquisa_ativa import (

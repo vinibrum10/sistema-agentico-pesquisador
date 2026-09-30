@@ -1,6 +1,6 @@
 """Ajustar pesquisa atual: altera um campo por vez do contexto salvo."""
 
-from agents.intake.intake import (
+from agent_intake.intake import (
     analisar_contexto_oficial,
     confirmar_contexto_final,
     confirmar_idiomas,

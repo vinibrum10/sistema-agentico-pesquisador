@@ -5,9 +5,9 @@ from collections import Counter
 
 from pyalex import Works
 
-from agents.refino.loop import registrar_rodada
-from agents.screening.juiz import SCREENING_FILE, executar_triagem
-from agents.search.openalex import RESULTS_FILE, salvar_resultados
+from agent_research.refino.loop import registrar_rodada
+from agent_research.screening.juiz import SCREENING_FILE, executar_triagem
+from agent_research.search.openalex import RESULTS_FILE, salvar_resultados
 
 
 LOTE = 50  # IDs por filtro OR (limite da API: 100)

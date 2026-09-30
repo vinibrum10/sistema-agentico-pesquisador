@@ -2,9 +2,9 @@
 
 from collections import Counter
 
-from agents.refino.loop import executar_loop, ler_vereditos
-from agents.refino.snowball import executar_snowball
-from agents.screening.revisao import gerar_revisao
+from agent_research.refino.loop import executar_loop, ler_vereditos
+from agent_research.refino.snowball import executar_snowball
+from agent_research.screening.revisao import gerar_revisao
 
 
 PISO = 0.3                # precisão mínima de uma rodada (relevantes / válidos)

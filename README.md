@@ -70,7 +70,7 @@ Requer Ollama com `qwen3:8b` e `OPENALEX_API_KEY` no `.env`.
 
 Calibração do juiz:
 
-    python -c "import sys; sys.path.insert(0, 'src'); from agents.screening.calibracao import calibrar; calibrar()"
+    python -c "import sys; sys.path.insert(0, 'src'); from agent_research.screening.calibracao import calibrar; calibrar()"
 
 ## Métricas de referência (26–27/09/2026)
 

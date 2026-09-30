@@ -1,6 +1,6 @@
 """Planner V1: monta o plano de busca de forma determinística, sem LLM."""
 
-from agents.search.openalex import (
+from agent_research.search.openalex import (
     montar_consulta,
 )
 from core.pesquisa_ativa import (
