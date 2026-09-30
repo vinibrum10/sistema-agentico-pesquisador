@@ -52,7 +52,7 @@ em `data/active_research/` e usam `core/`.
 |---|---|
 | `context.json` | contexto confirmado no intake e plano de busca |
 | `results.csv` | papers encontrados (upsert por `openalex_id`) |
-| `screening.csv` | veredito, justificativa e trecho literal por paper |
+| `screening.csv` | veredito, justificativa e trecho literal por paper; `tema_confirmado` (`não` = veredito de um tema anterior) e `veredito_anterior` |
 | `triagem_contexto.json` | tema, objetivo e foco usados na última triagem; se mudarem, os vereditos são refeitos |
 | `loop_log.csv` | histórico de rodadas do loop (acumula execuções; ver `data_hora`) |
 | `revisao.csv` | relevantes e "talvez" para o pesquisador revisar (`;`) |

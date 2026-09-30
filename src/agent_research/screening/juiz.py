@@ -20,6 +20,8 @@ COLUNAS = [
     "justificativa",
     "trecho",
     "confianca",
+    "tema_confirmado",
+    "veredito_anterior",
 ]
 
 MAX_RESUMO = 2500
@@ -54,6 +56,8 @@ def linha_sem_llm(linha: dict, veredito: str, justificativa: str) -> dict:
         "justificativa": justificativa,
         "trecho": "",
         "confianca": "",
+        "tema_confirmado": "sim",
+        "veredito_anterior": "",
     }
 
 
@@ -124,10 +128,12 @@ Responda em JSON.
         ),
         "trecho": trecho,
         "confianca": "normal" if trecho_valido else "baixa",
+        "tema_confirmado": "sim",
+        "veredito_anterior": "",
     }
 
 
-def carregar_triagem() -> dict:
+def carregar_triagem(incluir_erros: bool = False) -> dict:
     """Vereditos ja gravados; "erro" nao conta e sera julgado de novo."""
 
     if not SCREENING_FILE.exists():
@@ -137,8 +143,19 @@ def carregar_triagem() -> dict:
         return {
             linha["openalex_id"]: linha
             for linha in csv.DictReader(f)
-            if linha["veredito"] != "erro"
+            if incluir_erros or linha["veredito"] != "erro"
         }
+
+
+def veredito_anterior_de(antiga: dict | None) -> str:
+    """Veredito que o paper tinha antes de ser julgado de novo ("" se nao tinha)."""
+    if not antiga:
+        return ""
+
+    if antiga["veredito"] == "erro":
+        return antiga.get("veredito_anterior") or ""
+
+    return antiga["veredito"]
 
 
 def contexto_do_juiz(oficial: dict) -> dict:
@@ -192,15 +209,29 @@ def executar_triagem(dados: dict):
     linhas = carregar_resultados()
     descartes = filtrar(linhas)
     modelo = criar_juiz()
-    anteriores = carregar_triagem()
+    gravadas = carregar_triagem(incluir_erros=True)
+    anteriores = {
+        pid: antiga
+        for pid, antiga in gravadas.items()
+        if antiga["veredito"] != "erro"
+    }
+    desatualizada = bool(anteriores) and triagem_desatualizada(dados["oficial"])
 
-    if anteriores and triagem_desatualizada(dados["oficial"]):
+    if desatualizada:
         print("\nO tema, o objetivo ou o foco mudaram desde a última triagem.")
         print(f"Os {len(anteriores)} vereditos anteriores serão refeitos.")
-        anteriores = {}
 
     # Quem nao precisa do LLM ja entra: a gravacao parcial nao perde vereditos.
+    # Veredito de outro tema continua gravado, marcado "não", ate ser refeito.
     por_id = {}
+    prontos = set()
+
+    for pid, antiga in anteriores.items():
+        if not desatualizada and antiga.get("tema_confirmado") in (None, "", "sim"):
+            por_id[pid] = {**antiga, "tema_confirmado": "sim"}
+            prontos.add(pid)
+        else:
+            por_id[pid] = {**antiga, "tema_confirmado": "não"}
 
     for linha in linhas:
         pid = linha["openalex_id"]
@@ -208,29 +239,29 @@ def executar_triagem(dados: dict):
         # Descartes sao recalculados sempre: valem tambem para papers ja triados.
         if pid in descartes:
             por_id[pid] = linha_sem_llm(linha, "descartado", descartes[pid])
-        elif pid in anteriores:
-            por_id[pid] = anteriores[pid]
+            prontos.add(pid)
 
     novos = 0
 
     for numero, linha in enumerate(linhas, start=1):
         pid = linha["openalex_id"]
 
-        if pid in por_id:
+        if pid in prontos:
             continue
 
         novos += 1
         print(f"[{numero}/{len(linhas)}] {linha['titulo'][:70]}")
 
         try:
-            por_id[pid] = julgar(modelo, dados["oficial"], linha)
+            nova = julgar(modelo, dados["oficial"], linha)
 
         except json.JSONDecodeError:
-            por_id[pid] = linha_sem_llm(
+            nova = linha_sem_llm(
                 linha,
                 "erro",
                 "modelo não retornou JSON válido",
             )
+            nova["tema_confirmado"] = "não"
 
         except Exception as erro:
             raise RuntimeError(
@@ -239,6 +270,9 @@ def executar_triagem(dados: dict):
                 f"{modelo.model} está instalado. "
                 "Os vereditos já gravados foram mantidos."
             ) from erro
+
+        nova["veredito_anterior"] = veredito_anterior_de(gravadas.get(pid))
+        por_id[pid] = nova
 
         gravar_triagem(linhas, por_id, dados["oficial"])
 

@@ -28,6 +28,9 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
   apague `screening.csv`;
 - se o tema, o objetivo ou o foco mudarem (`triagem_contexto.json`), todos os vereditos
   são refeitos na próxima triagem; os papers já encontrados e a deduplicação permanecem;
+- até serem refeitos, os vereditos antigos ficam gravados com `tema_confirmado` = `não`;
+  ao serem refeitos viram `sim` e o veredito que tinham vai para `veredito_anterior`
+  (uma geração só);
 - `screening.csv` é gravado a cada paper julgado: Ctrl+C ou uma falha não perdem o que já
   foi julgado, e a triagem continua de onde parou;
 - JSON inválido do modelo marca só aquele paper como "erro"; Ollama fora do ar ou modelo
