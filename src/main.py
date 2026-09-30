@@ -1,4 +1,4 @@
-"""Ponto de entrada: pesquisa ativa (Manter / Ajustar / Mudar tema) e novo Intake."""
+"""Ponto de entrada: pesquisa ativa (Manter / Ajustar / Começar pesquisa nova) e novo Intake."""
 
 import json
 
@@ -46,6 +46,7 @@ from core.pesquisa_ativa import (
     apagar_pesquisa_ativa,
     carregar_contexto,
     contexto_para_exibicao,
+    criar_backup_pesquisa_ativa,
     existe_pesquisa_ativa,
     salvar_contexto,
 )
@@ -59,7 +60,7 @@ def menu_pesquisa_ativa(dados: dict) -> str:
 
         print("\n[1] Manter pesquisa atual")
         print("[2] Ajustar pesquisa atual")
-        print("[3] Mudar tema da tese")
+        print("[3] Começar pesquisa nova (apaga tudo)")
 
         escolha = input("> ").strip()
 
@@ -83,13 +84,13 @@ def menu_pesquisa_ativa(dados: dict) -> str:
 
 
 def confirmar_mudanca_de_tema(dados: dict) -> bool:
-    print("\n=== Mudar tema da tese ===\n")
+    print("\n=== Começar pesquisa nova ===\n")
     print(f"Tema atual: {dados['oficial']['tema']}")
     print(
         "\nATENÇÃO: o contexto científico e os resultados "
         "desta pesquisa serão apagados."
     )
-    print("Não será mantido nenhum histórico.")
+    print("Só será mantido o backup, se você escolher fazê-lo.")
 
     while True:
         print("\n[1] Confirmar mudança")
@@ -98,11 +99,36 @@ def confirmar_mudanca_de_tema(dados: dict) -> bool:
         escolha = input("> ").strip()
 
         if escolha == "1":
-            return True
+            return oferecer_backup(dados)
 
         if escolha == "2":
             print("\nMudança cancelada. Nada foi alterado.")
             return False
+
+        print("\nOpção inválida.")
+
+
+def oferecer_backup(dados: dict) -> bool:
+    """Pergunta pelo backup antes de apagar. False = backup falhou, nada é apagado."""
+    while True:
+        print("\nDeseja fazer backup da pesquisa atual antes de apagar?")
+        print("[1] Sim (gera um zip em data/backups/)")
+        print("[2] Não (apagar sem backup)")
+
+        escolha = input("> ").strip()
+
+        if escolha == "2":
+            return True
+
+        if escolha == "1":
+            try:
+                caminho = criar_backup_pesquisa_ativa(dados["oficial"]["tema"])
+            except Exception as erro:
+                print(f"\nNão foi possível criar o backup: {erro}")
+                print("Nada foi apagado.")
+                return False
+            print(f"\nBackup criado: {caminho}")
+            return True
 
         print("\nOpção inválida.")
 

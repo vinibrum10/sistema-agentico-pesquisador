@@ -1,7 +1,10 @@
-"""Pesquisa ativa: caminhos, leitura, gravação e remoção do context.json."""
+"""Pesquisa ativa: caminhos, leitura, gravação, backup e remoção do context.json."""
 
 import json
+import re
 import shutil
+import unicodedata
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -11,6 +14,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 ACTIVE_RESEARCH_DIR = PROJECT_ROOT / "data" / "active_research"
+
+
+BACKUPS_DIR = PROJECT_ROOT / "data" / "backups"
 
 
 CONTEXT_FILE = ACTIVE_RESEARCH_DIR / "context.json"
@@ -92,7 +98,7 @@ def salvar_contexto(
 
 
 # ==================================================
-# PESQUISA ATIVA — Manter / Ajustar / Mudar tema
+# PESQUISA ATIVA — Manter / Ajustar / Começar pesquisa nova
 # ==================================================
 
 
@@ -123,3 +129,28 @@ def contexto_para_exibicao(dados: dict) -> dict:
 def apagar_pesquisa_ativa() -> None:
     if ACTIVE_RESEARCH_DIR.exists():
         shutil.rmtree(ACTIVE_RESEARCH_DIR)
+
+
+def criar_backup_pesquisa_ativa(tema: str) -> Path:
+    """Compacta data/active_research/ em data/backups/ e confere o zip."""
+    arquivos = [a for a in sorted(ACTIVE_RESEARCH_DIR.rglob("*")) if a.is_file()]
+    if not arquivos:
+        raise RuntimeError("não há arquivos para incluir no backup")
+
+    slug = unicodedata.normalize("NFKD", tema).encode("ascii", "ignore").decode()
+    slug = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")[:40] or "pesquisa"
+    agora = datetime.now().strftime("%Y-%m-%d_%H%M")
+
+    BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+    destino = BACKUPS_DIR / f"pesquisa_{slug}_{agora}.zip"
+
+    with zipfile.ZipFile(destino, "w", zipfile.ZIP_DEFLATED) as zf:
+        for arquivo in arquivos:
+            zf.write(arquivo, arquivo.relative_to(ACTIVE_RESEARCH_DIR))
+
+    with zipfile.ZipFile(destino) as zf:
+        if zf.testzip() is not None or len(zf.namelist()) != len(arquivos):
+            destino.unlink()
+            raise RuntimeError("o zip gerado não passou na conferência")
+
+    return destino
