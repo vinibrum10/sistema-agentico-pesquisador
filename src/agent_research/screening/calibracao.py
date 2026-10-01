@@ -2,6 +2,7 @@
 
 import csv
 from collections import Counter
+from math import sqrt
 
 from agent_research.screening.juiz import SCREENING_FILE, triagem_desatualizada
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, carregar_contexto
@@ -10,6 +11,14 @@ from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, carregar_contexto
 GABARITO_FILE = ACTIVE_RESEARCH_DIR / "gabarito.csv"
 
 ROTULOS = {"r": "relevante", "t": "talvez", "l": "lixo"}
+
+
+def intervalo_wilson(k: int, n: int, z: float = 1.96) -> tuple:
+    """Intervalo de confiança de 95% (Wilson) para k em n; serve para n pequeno."""
+    p = k / n
+    centro = (p + z * z / (2 * n)) / (1 + z * z / n)
+    meia = z * sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return centro - meia, centro + meia
 
 
 def calibrar() -> None:
@@ -68,9 +77,11 @@ def calibrar() -> None:
             f"\nEvidência perdida (relevante -> lixo): "
             f"{perdidos}/{relevantes} ({perdidos / relevantes:.0%})"
         )
+        baixo, alto = intervalo_wilson(relevantes - perdidos, relevantes)
         print(
             f"Recall (relevante mantido como relevante ou talvez): "
-            f"{(relevantes - perdidos) / relevantes:.0%}"
+            f"{(relevantes - perdidos) / relevantes:.0%} "
+            f"(IC 95%: {baixo:.0%} a {alto:.0%}; {relevantes} relevantes no gabarito)"
         )
 
     print(

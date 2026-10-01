@@ -33,6 +33,10 @@ Calibração do juiz:
 
     python -c "import sys; sys.path.insert(0, 'src'); from agent_research.screening.calibracao import calibrar; calibrar()"
 
+Avaliação do aprendizado (só leitura; precisa de `python -m pip install scikit-learn==1.7.2` e do `bge-m3` no Ollama):
+
+    python scripts\avaliar_aprendizado.py
+
 ## Estrutura
 
     src/main.py             ponto de entrada (menus)
@@ -41,6 +45,7 @@ Calibração do juiz:
     src/agent_research/     busca, triagem e refino   -> ver README da pasta
     data/active_research/   dados da pesquisa ativa (fora do git)
     tests/                  testes (ainda vazio)
+    scripts/                avaliações e experimentos (só leitura)
 
 Regras: uma pasta por agente (`agent_<função>`, nome em inglês; arquivos em português
 descrevendo o que fazem). Agentes nunca importam um ao outro: conversam por arquivos

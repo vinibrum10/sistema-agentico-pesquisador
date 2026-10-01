@@ -51,6 +51,10 @@ Calibração:
 
     python -c "import sys; sys.path.insert(0, 'src'); from agent_research.screening.calibracao import calibrar; calibrar()"
 
+Avaliação do aprendizado (só leitura; precisa de `python -m pip install scikit-learn==1.7.2` e do `bge-m3` no Ollama):
+
+    python scripts\avaliar_aprendizado.py
+
 ## Métricas (gabarito de 66 papers, 30/09/2026)
 
 Evidência perdida 1 de 16 (6%) · recall 94% · concordância 44 de 66 (67%) ·

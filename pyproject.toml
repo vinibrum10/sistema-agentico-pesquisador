@@ -9,4 +9,5 @@ dependencies = [
     "langchain-ollama==1.1.0",
     "pyalex==0.21",
     "python-dotenv==1.2.3",
+    "scikit-learn==1.7.2",
 ]
