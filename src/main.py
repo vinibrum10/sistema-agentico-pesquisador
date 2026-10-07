@@ -42,6 +42,9 @@ from agent_research.refino.automatico import (
 from agent_research.screening.revisao import (
     gerar_revisao,
 )
+from agent_research.acervo.textos import (
+    montar_acervo,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -223,8 +226,9 @@ def manter_pesquisa(dados: dict) -> None:
     while True:
         print("\n[1] Pesquisar (automático) — busca, triagem e snowballing")
         print("[2] Revisar resultados — relevantes e talvez em revisao.csv")
-        print("[3] Opções avançadas — etapas manuais, uma por vez")
-        print("[4] Sair")
+        print("[3] Textos completos — importa entrada/, baixa do OpenAlex e lista os que faltam")
+        print("[4] Opções avançadas — etapas manuais, uma por vez")
+        print("[5] Sair")
 
         escolha = input("> ").strip()
 
@@ -237,10 +241,14 @@ def manter_pesquisa(dados: dict) -> None:
             return
 
         if escolha == "3":
+            rodar_etapa(montar_acervo)
+            return
+
+        if escolha == "4":
             opcoes_avancadas(dados)
             continue
 
-        if escolha == "4":
+        if escolha == "5":
             return
 
         print("\nOpção inválida.")

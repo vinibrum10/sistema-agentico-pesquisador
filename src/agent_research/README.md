@@ -16,6 +16,7 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 | Refino | `refino/snowball.py` | Snowballing a partir dos relevantes; candidatos com pelo menos 2 ligações, máximo 50 | novos papers em `results.csv` |
 | Automático | `refino/automatico.py` | Busca, triagem e snowballing (até 3 rodadas) até parar: menos de 5 relevantes novos, precisão abaixo do piso ou sem candidatos | dados atualizados |
 | Revisão | `screening/revisao.py` | Reúne relevantes e "talvez" para o pesquisador | `revisao.csv` |
+| Acervo | `acervo/textos.py` | Importa os PDFs de `entrada/` (DOI ou título nas 2 primeiras páginas), baixa do OpenAlex os que ele tem e lista o resto. PDF não reconhecido fica em `entrada/`: renomeie para `<ID>.pdf` e coloque em `textos/` | `textos/`, `faltantes.csv` |
 | Calibração | `screening/calibracao.py` | Compara o juiz com `gabarito.csv` | métricas no terminal |
 
 ## Regras do juiz
@@ -47,7 +48,7 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 ## Como usar
 
 Pelo menu (`python src\main.py`): [1] Pesquisar (automático), [2] Revisar resultados,
-[3] Opções avançadas (etapas manuais). Descrição completa dos menus no README da raiz.
+[3] Textos completos, [4] Opções avançadas (etapas manuais). Descrição completa dos menus no README da raiz.
 
 Calibração:
 

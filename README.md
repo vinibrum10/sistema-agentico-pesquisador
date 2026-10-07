@@ -26,8 +26,10 @@ Menu inicial (pesquisa ativa): [1] Manter · [2] Ajustar (um campo por vez; se t
 Ao manter a pesquisa:
 - [1] Pesquisar (automático) — busca, triagem e snowballing até parar;
 - [2] Revisar resultados — relevantes e "talvez" em `revisao.csv`;
-- [3] Opções avançadas — etapas manuais, uma por vez (plano, triagem, loop, snowballing);
-- [4] Sair.
+- [3] Textos completos — importa os PDFs de `entrada/`, baixa do OpenAlex os que ele tem
+  (US$ 0,01 cada; a chave grátis cobre US$ 1 por dia) e lista os que faltam em `faltantes.csv`;
+- [4] Opções avançadas — etapas manuais, uma por vez (plano, triagem, loop, snowballing);
+- [5] Sair.
 
 Calibração do juiz:
 
@@ -70,6 +72,9 @@ em `data/active_research/` e usam `core/`.
 | `loop_log.csv` | histórico de rodadas do loop (acumula execuções; ver `data_hora`) |
 | `revisao.csv` | relevantes e "talvez" para o pesquisador revisar (`;`), com `tema_confirmado` e `veredito_anterior` |
 | `gabarito.csv` | rótulos manuais r/t/l para calibrar o juiz (`;`) |
+| `textos/` | texto completo dos relevantes e "talvez", um PDF por paper: `<ID do OpenAlex>.pdf`; `<ID>.defeituoso` marca um PDF que veio com defeito do OpenAlex (não é baixado de novo) |
+| `entrada/` | PDFs que você obteve, com qualquer nome; a opção [3] reconhece pelo DOI ou pelo título e move para `textos/` |
+| `faltantes.csv` | relevantes e "talvez" ainda sem texto, relevantes primeiro, com link (`;`) |
 
 ## Métricas de referência
 
