@@ -1,0 +1,30 @@
+{
+  "teto_por_execucao_usd": 1.0,
+  "tarefas": {
+    "juiz": "qwen3:8b"
+  },
+  "modelos": {
+    "qwen3:8b": {
+      "provedor": "ollama",
+      "modelo": "qwen3:8b"
+    },
+    "deepseek-flash": {
+      "provedor": "openai_compativel",
+      "modelo": "deepseek-flash",
+      "base_url": "https://api.deepseek.com",
+      "chave_env": "DEEPSEEK_API_KEY",
+      "entrada_usd_1m": 0.30,
+      "saida_usd_1m": 1.20,
+      "extra_body": {"thinking": {"type": "disabled"}}
+    },
+    "gemini-3.1-flash-lite": {
+      "provedor": "openai_compativel",
+      "modelo": "gemini-3.1-flash-lite",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "chave_env": "GEMINI_API_KEY",
+      "entrada_usd_1m": 0.25,
+      "saida_usd_1m": 1.50,
+      "reasoning_effort": "low"
+    }
+  }
+}

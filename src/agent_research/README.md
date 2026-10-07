@@ -40,7 +40,9 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 - `screening.csv` é gravado a cada paper julgado: Ctrl+C ou uma falha não perdem o que já
   foi julgado, e a triagem continua de onde parou;
 - JSON inválido do modelo marca só aquele paper como "erro"; Ollama fora do ar ou modelo
-  ausente interrompe a triagem com uma mensagem clara.
+  ausente interrompe a triagem com uma mensagem clara;
+- o modelo do juiz vem de `config/modelos.json` (tarefa `juiz`); modelos de API registram
+  tokens e custo em `custos.csv` e param ao atingir o teto por execução.
 
 ## Como usar
 
@@ -54,6 +56,13 @@ Calibração:
 Avaliação do aprendizado (só leitura; precisa de `python -m pip install scikit-learn==1.7.2` e do `bge-m3` no Ollama):
 
     python scripts\avaliar_aprendizado.py
+
+Comparação de juízes no gabarito (só leitura; não altera o `screening.csv`). Modelos de API
+precisam de `python -m pip install langchain-openai==1.6.7` e da chave no `.env`
+(`DEEPSEEK_API_KEY`, `GEMINI_API_KEY`); as respostas vão para `comparacao_juizes/` e o custo
+de cada chamada paga para `custos.csv`:
+
+    python scripts\comparar_juizes.py
 
 ## Métricas (gabarito de 66 papers, 30/09/2026)
 

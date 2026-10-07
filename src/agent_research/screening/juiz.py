@@ -3,9 +3,8 @@
 import csv
 import json
 
-from langchain_ollama import ChatOllama
-
 from agent_research.screening.filtros import carregar_resultados, filtrar
+from core.modelos import TetoAtingido, criar_modelo
 from core.pesquisa_ativa import ACTIVE_RESEARCH_DIR, ROTULOS_FOCO
 from core.texto import normalizar_texto
 
@@ -39,13 +38,8 @@ ESQUEMA = {
 }
 
 
-def criar_juiz() -> ChatOllama:
-    return ChatOllama(
-        model="qwen3:8b",
-        temperature=0,
-        reasoning=False,
-        format=ESQUEMA,
-    )
+def criar_juiz():
+    return criar_modelo("juiz", esquema=ESQUEMA)
 
 
 def linha_sem_llm(linha: dict, veredito: str, justificativa: str) -> dict:
@@ -336,11 +330,14 @@ def executar_triagem(dados: dict):
             )
             nova["tema_confirmado"] = "não"
 
+        except TetoAtingido:
+            raise
+
         except Exception as erro:
             raise RuntimeError(
-                f"falha ao chamar o modelo local ({erro}). "
-                f"Confirme que o Ollama está em execução e que o modelo "
-                f"{modelo.model} está instalado. "
+                f"falha ao chamar o modelo do juiz ({erro}). "
+                "Se for o Ollama, confirme que está em execução e que o modelo "
+                "está instalado; se for uma API, confira a chave no .env. "
                 "Os vereditos já gravados foram mantidos."
             ) from erro
 

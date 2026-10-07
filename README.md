@@ -37,6 +37,13 @@ Avaliação do aprendizado (só leitura; precisa de `python -m pip install sciki
 
     python scripts\avaliar_aprendizado.py
 
+Comparação de juízes no gabarito (só leitura; não altera o `screening.csv`). Modelos de API
+precisam de `python -m pip install langchain-openai==1.6.7` e da chave no `.env`
+(`DEEPSEEK_API_KEY`, `GEMINI_API_KEY`); as respostas vão para `comparacao_juizes/` e o custo
+de cada chamada paga para `custos.csv`:
+
+    python scripts\comparar_juizes.py
+
 ## Estrutura
 
     src/main.py             ponto de entrada (menus)
@@ -46,6 +53,7 @@ Avaliação do aprendizado (só leitura; precisa de `python -m pip install sciki
     data/active_research/   dados da pesquisa ativa (fora do git)
     tests/                  testes (ainda vazio)
     scripts/                avaliações e experimentos (só leitura)
+    config/                 modelo de cada tarefa, preços e teto de gasto (modelos.json)
 
 Regras: uma pasta por agente (`agent_<função>`, nome em inglês; arquivos em português
 descrevendo o que fazem). Agentes nunca importam um ao outro: conversam por arquivos
