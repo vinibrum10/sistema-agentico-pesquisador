@@ -8,6 +8,7 @@ dependencies = [
     "langgraph==1.2.12",
     "langchain-ollama==1.1.0",
     "langchain-openai==1.6.7",
+    "numpy==2.5.3",
     "pyalex==0.21",
     "pypdf==6.19.0",
     "python-dotenv==1.2.3",

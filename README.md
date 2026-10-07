@@ -46,6 +46,13 @@ de cada chamada paga para `custos.csv`:
 
     python scripts\comparar_juizes.py
 
+Teste da camada de trechos (etapa 2), parte A: indexa os PDFs de `textos/` em trechos com a
+página (`bge-m3` no Ollama; só os PDFs novos) e roda a busca local, sem LLM, nas perguntas de
+`teste_trechos/perguntas.csv`. O resultado fica em `teste_trechos/nao_abrir_metodo_a.csv`, que
+só deve ser aberto depois da avaliação às cegas:
+
+    python scripts\teste_trechos.py
+
 ## Estrutura
 
     src/main.py             ponto de entrada (menus)
@@ -75,6 +82,8 @@ em `data/active_research/` e usam `core/`.
 | `textos/` | texto completo dos relevantes e "talvez", um PDF por paper: `<ID do OpenAlex>.pdf`; `<ID>.defeituoso` marca um PDF que veio com defeito do OpenAlex (não é baixado de novo) |
 | `entrada/` | PDFs que você obteve, com qualquer nome; a opção [3] reconhece pelo DOI ou pelo título e move para `textos/` |
 | `faltantes.csv` | relevantes e "talvez" ainda sem texto, relevantes primeiro, com link (`;`) |
+| `trechos/` | índice de trechos: `<ID>.jsonl` (trechos com a página do PDF) e `<ID>.npy` (vetores `bge-m3`) |
+| `teste_trechos/` | teste da etapa 2: `perguntas.csv` (`;`) e o resultado de cada método (não abrir antes da avaliação) |
 
 ## Métricas de referência
 

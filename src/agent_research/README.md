@@ -17,6 +17,8 @@ Prioridade do desenho: **não perder evidência** (recall) antes de acertar tudo
 | Automático | `refino/automatico.py` | Busca, triagem e snowballing (até 3 rodadas) até parar: menos de 5 relevantes novos, precisão abaixo do piso ou sem candidatos | dados atualizados |
 | Revisão | `screening/revisao.py` | Reúne relevantes e "talvez" para o pesquisador | `revisao.csv` |
 | Acervo | `acervo/textos.py` | Importa os PDFs de `entrada/` (DOI ou título nas 2 primeiras páginas), baixa do OpenAlex os que ele tem e lista o resto. PDF não reconhecido fica em `entrada/`: renomeie para `<ID>.pdf` e coloque em `textos/` | `textos/`, `faltantes.csv` |
+| Trechos | `trechos/indice.py` | Divide cada PDF de `textos/` em trechos de até 1.500 caracteres, com a página do PDF, e calcula o vetor `bge-m3`; só indexa PDFs novos | `trechos/` |
+| Trechos | `trechos/busca.py` | Busca local sem LLM: palavras-chave (BM25) e significado (`bge-m3`), combinadas pela posição | trechos por pergunta |
 | Calibração | `screening/calibracao.py` | Compara o juiz com `gabarito.csv` | métricas no terminal |
 
 ## Regras do juiz
@@ -64,6 +66,13 @@ precisam de `python -m pip install langchain-openai==1.6.7` e da chave no `.env`
 de cada chamada paga para `custos.csv`:
 
     python scripts\comparar_juizes.py
+
+Teste da camada de trechos (etapa 2), parte A: indexa os PDFs de `textos/` em trechos com a
+página (`bge-m3` no Ollama; só os PDFs novos) e roda a busca local, sem LLM, nas perguntas de
+`teste_trechos/perguntas.csv`. O resultado fica em `teste_trechos/nao_abrir_metodo_a.csv`, que
+só deve ser aberto depois da avaliação às cegas:
+
+    python scripts\teste_trechos.py
 
 ## Métricas (gabarito de 66 papers, 30/09/2026)
 
