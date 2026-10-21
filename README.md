@@ -4,13 +4,18 @@ Workflow agêntico local para apoio à pesquisa científica, agnóstico ao tema.
 Modelo local via Ollama (`qwen3:8b`, GPU local); busca científica no OpenAlex.
 O pesquisador decide nos pontos-chave (human-in-the-loop); o sistema faz o trabalho repetitivo.
 
-## Status atual (30/09/2026)
+## Status atual (21/10/2026)
 
 - `agent_intake`: concluído (V1) — coleta e confirma o contexto da pesquisa.
 - `agent_research`: concluído (V1) — plano de busca, busca no OpenAlex, triagem,
-  refino por loop e snowballing, com modo automático.
-- Em preparação: tratamento de falhas (Ollama/OpenAlex) no modo automático e
-  ampliação do gabarito de calibração.
+  refino por loop e snowballing, com modo automático e tratamento de falhas (Ollama/OpenAlex).
+- Camada de modelos (`config/modelos.json`, `src/core/modelos.py`): modelo por tarefa, local
+  (Ollama) ou de API, com custo por chamada em `custos.csv` e teto de gasto por execução.
+  Hoje o juiz da triagem usa `qwen3:8b`.
+- Camada de trechos (RAG): acervo de PDFs (menu "Textos completos"), índice de trechos com
+  página (`bge-m3`) e busca híbrida local BM25 + semântica, sem custo. O PaperQA2 foi testado
+  e não adotado (ver "Teste da camada de trechos", parte B). A busca ainda não está no menu:
+  hoje só o `scripts\teste_trechos.py` a usa; o primeiro a usá-la será o agente de escrita.
 - Ainda não existe: agente de escrita, agente de código/ML, orquestrador.
   A pasta de um agente só é criada quando ele começa a ser construído.
 
