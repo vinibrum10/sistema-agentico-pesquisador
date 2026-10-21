@@ -53,6 +53,17 @@ só deve ser aberto depois da avaliação às cegas:
 
     python scripts\teste_trechos.py
 
+Parte B: comparação com o PaperQA2 via DeepSeek, em ambiente separado (`.venv-paperqa`), com os
+scripts de `scripts/teste_paperqa/` (01 confere a chave, 02 roda o método B, 03 gera a avaliação
+às cegas `teste_trechos/avaliacao_cega.html` e o mapa dos métodos). Resultado (21/10/2026): o
+PaperQA2 **não foi adotado** — 45 de 50 trechos úteis contra 50 de 50 da busca local (o critério
+exigia +15), com 45 de 45 citações conferíveis e US$ 0,0035 por pergunta. Ressalva: os 95
+trechos foram marcados como "serve", então o teste não separou os métodos; refazer com
+perguntas mais específicas quando existir o agente escritor.
+
+    .venv-paperqa\Scripts\python.exe scripts\teste_paperqa\02_metodo_b.py
+    python scripts\teste_paperqa\03_gerar_avaliacao_cega.py
+
 ## Estrutura
 
     src/main.py             ponto de entrada (menus)

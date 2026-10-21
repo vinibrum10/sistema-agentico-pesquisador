@@ -6,3 +6,6 @@ __pycache__/
 .env
 data/active_research/
 data/backups/
+
+.venv-paperqa/
+.claude/
