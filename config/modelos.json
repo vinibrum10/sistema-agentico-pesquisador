@@ -1,7 +1,8 @@
 {
   "teto_por_execucao_usd": 1.0,
   "tarefas": {
-    "juiz": "qwen3:8b"
+    "juiz": "qwen3:8b",
+    "perguntas_secao": "qwen3:8b"
   },
   "modelos": {
     "qwen3:8b": {
