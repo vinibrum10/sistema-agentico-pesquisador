@@ -73,11 +73,13 @@ class RegistroCusto(BaseCallbackHandler):
             )
 
 
-def criar_modelo(tarefa: str, esquema: dict | None = None, nome: str | None = None):
+def criar_modelo(tarefa: str, esquema: dict | None = None, nome: str | None = None,
+                 contexto: int | None = None):
     """Modelo da tarefa em config/modelos.json (ou o modelo `nome`), pronto para .invoke().
 
     `esquema` pede a resposta em JSON: no Ollama, com o esquema imposto; nas APIs,
     em modo JSON (os campos vêm do prompt).
+    `contexto` (tokens) muda a janela do Ollama; as APIs ignoram.
     """
     config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
     nome = nome or config["tarefas"][tarefa]
@@ -87,6 +89,8 @@ def criar_modelo(tarefa: str, esquema: dict | None = None, nome: str | None = No
         from langchain_ollama import ChatOllama
 
         extras = {"format": esquema} if esquema else {}
+        if contexto:
+            extras["num_ctx"] = contexto
         return ChatOllama(model=info["modelo"], temperature=0, reasoning=False, **extras)
 
     from langchain_openai import ChatOpenAI
