@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push *)",
+      "PowerShell(git push *)",
+      "Bash(git merge *)",
+      "PowerShell(git merge *)",
+      "Bash(git switch main *)",
+      "PowerShell(git switch main *)",
+      "Bash(git checkout main *)",
+      "PowerShell(git checkout main *)",
+      "Edit(//c/Users/Vinicius/Documents/1.0-Desenvolvimentos_Projetos/7-sistema_agentico_pesquisador/data/**)",
+      "Read(//c/Users/Vinicius/Documents/1.0-Desenvolvimentos_Projetos/7-sistema_agentico_pesquisador/**/.env)",
+      "Edit(//**/.claude/settings.json)"
+    ]
+  }
+}

@@ -43,13 +43,13 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
 | `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 iniciada em 23/10, guardada na branch `feat/escritor-etapa3` (`d5dda51`, sem merge):** `src/agent_writer/rascunho.py` (novo), tarefa `escrita_secao` em `config/modelos.json` e parâmetro `contexto` em `src/core/modelos.py`. Já gerou `rascunho_qwen3_8b.md` e `rascunho_deepseek-flash.md` na seção de teste; a comparação não foi avaliada; não está ligado ao menu |
-| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` na branch `feat/ambiente-docs`; faltam bloqueios, homologação, testes e Actions |
+| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` na main; bloqueios na branch `feat/ambiente-bloqueios`; faltam homologação, testes e Actions |
 | `tests/` | Vazio |
 
 **Divergência a resolver:** `rascunho.py` ainda não segue a decisão 5.1 (CAG): no
 prompt, os trechos vêm depois do título e das perguntas-guia, e não no início.
 
-**Próximo passo:** 8.3 em diante (seção 8).
+**Próximo passo:** testar os bloqueios da 8.3 e seguir para a 8.4.
 
 ## 4. Decisões registradas
 
@@ -100,6 +100,10 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 5. A próxima etapa abre uma branch nova a partir da main atualizada (as duas pastas
    usam o mesmo repositório, então a main local já aparece na worktree).
 6. O Claude nunca faz merge, push, nem troca para a main dentro da worktree.
+7. O Claude Code é iniciado **dentro da worktree** (`cd .claude\worktrees\trabalho`;
+   `claude`). O `.claude/settings.json` só é lido da pasta onde a sessão começa, sem
+   procurar nas pastas acima; por isso ele é versionado (exceção no `.gitignore`) e
+   existe nas duas pastas.
 
 ## 7. Produção e homologação
 
@@ -119,7 +123,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 ## 8. Preparar o ambiente
 
-Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (branch `feat/ambiente-docs`).
+Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 com commit na branch `feat/ambiente-bloqueios`, teste ao vivo pendente.
 
 | # | Etapa | Verificação |
 |---|---|---|
@@ -132,6 +136,12 @@ Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`
 | 8.6 | GitHub Actions (`.github/workflows/testes.yml`) rodando o `pytest` a cada push de branch `feat/**` | commit aparece verde no GitHub |
 
 Observações:
+- Bloqueios da 8.3 (`.claude/settings.json`): negam `git push`, `git merge`, troca
+  para a main (no Bash e no PowerShell), edição em `data/` da pasta principal, leitura
+  de `.env` e edição do próprio `settings.json`. Limite: segundo a documentação do
+  Claude Code, as regras valem para o comando como o Claude o escreve e para as
+  ferramentas internas; não seguram variações (`git -C . push`) nem um script Python
+  que grave arquivos por conta própria. São trava de segurança, não muralha.
 - `pytest` não está nas dependências do `pyproject.toml`; entra como dependência de
   desenvolvimento na 8.5.
 - Comandos de git que gravam caminhos (ex.: `git worktree add`) rodam no git do

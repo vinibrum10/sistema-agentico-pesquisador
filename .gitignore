@@ -8,4 +8,5 @@ data/active_research/
 data/backups/
 
 .venv-paperqa/
-.claude/
+.claude/*
+!.claude/settings.json
