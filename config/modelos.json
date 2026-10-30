@@ -3,7 +3,7 @@
   "tarefas": {
     "juiz": "qwen3:8b",
     "perguntas_secao": "qwen3:8b",
-    "escrita_secao": "qwen3:8b"
+    "escrita_secao": "deepseek-flash"
   },
   "modelos": {
     "qwen3:8b": {

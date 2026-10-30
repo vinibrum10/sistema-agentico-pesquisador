@@ -30,22 +30,25 @@ def montar_prompt(secao: dict, trechos: dict) -> str:
         f"[{ref}] (paper {t['paper']}, p. {t['pagina']})\n{t['texto']}"
         for ref, t in trechos.items()
     )
-    return f"""Você escreve uma seção de um texto científico em português, usando SOMENTE os trechos abaixo.
+    return f"""Trechos de artigos científicos (em inglês; cada um tem uma referência entre colchetes):
+
+{evidencias}
+
+---
+
+Você escreve uma seção de um texto científico em português, usando SOMENTE os trechos acima.
 
 Título da seção: {secao["titulo"]}
 
 Perguntas-guia, na ordem em que a seção deve tratá-las:
 {perguntas}
 
-Trechos (em inglês; cada um tem uma referência entre colchetes):
-{evidencias}
-
 Regras:
 - escreva um parágrafo por pergunta-guia, na mesma ordem, sem títulos nem numeração;
-- toda frase termina com a referência do trecho que a sustenta, por exemplo [T3] ou [T3, T7];
+- toda frase termina com a referência do trecho que a sustenta, por exemplo [T3] ou [T3, T7] (exceto as frases {SEM_EVIDENCIA}, abaixo);
 - cada frase diz só o que o trecho citado diz; não acrescente conhecimento próprio, números, lugares ou nomes que não estejam no trecho;
 - escreva com suas palavras, em português; não copie frases inteiras dos trechos;
-- se os trechos não respondem a uma pergunta (ou a parte dela), escreva uma única frase dizendo isso e termine-a com {SEM_EVIDENCIA}, sem inventar a resposta;
+- uma pergunta-guia pode pedir algo específico (um lugar, período, método, material ou população). Se os trechos não mencionam esse aspecto, não responda como se mencionassem: escreva só o que os trechos dizem, citando-os, e acrescente uma frase dizendo qual parte da pergunta eles não cobrem, terminada com {SEM_EVIDENCIA} no lugar da referência. Se os trechos não cobrem nada da pergunta, escreva apenas essa frase;
 - não escreva introdução, conclusão nem lista de referências.
 
 Retorne SOMENTE o texto da seção."""

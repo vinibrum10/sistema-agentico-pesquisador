@@ -34,7 +34,7 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 - **Rastreabilidade:** cada frase escrita pelo sistema aponta para um trecho com fonte.
 - Agentes não importam um ao outro: conversam por arquivos em `data/` e usam `core/`.
 
-## 3. Estado atual (29/10/2026 — main em `9f86df8`, igual a origin/main)
+## 3. Estado atual (29/10/2026 — main em `0763b9b`, igual a origin/main)
 
 | Parte | Situação |
 |---|---|
@@ -42,14 +42,16 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 iniciada em 23/10, guardada na branch `feat/escritor-etapa3` (`d5dda51`, sem merge):** `src/agent_writer/rascunho.py` (novo), tarefa `escrita_secao` em `config/modelos.json` e parâmetro `contexto` em `src/core/modelos.py`. Já gerou `rascunho_qwen3_8b.md` e `rascunho_deepseek-flash.md` na seção de teste; a comparação não foi avaliada; não está ligado ao menu |
-| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na main; testes na main; Actions na branch `feat/ambiente-actions` |
-| `tests/` | 6 testes (`test_texto.py`, `test_pesquisa_ativa.py`), sem Ollama, API ou dados |
+| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 em andamento na branch `feat/escritor-etapa3` (sem merge):** `src/agent_writer/rascunho.py`, tarefa `escrita_secao` (padrão `deepseek-flash`) e parâmetro `contexto` em `src/core/modelos.py`. Prompt já no formato CAG (trechos no início) e com a regra de resposta parcial; testado na homologação (seção de teste, `rascunho_deepseek-flash_v2.md`). Falta a verificação determinística e ligar ao menu |
+| Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
+| `tests/` | 8 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`), sem Ollama, API ou dados |
 
-**Divergência a resolver:** `rascunho.py` ainda não segue a decisão 5.1 (CAG): no
-prompt, os trechos vêm depois do título e das perguntas-guia, e não no início.
+**Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
+tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
+prompt manda marcar `[sem evidência]`; a conferência determinística disso ainda não existe.
 
-**Próximo passo:** fechar a 8.6 (teste verde no GitHub) e retomar a etapa 3 do escritor.
+**Próximo passo:** verificação determinística do rascunho (referências, frases sem
+fonte, repetição, numeração, cópia literal) e ligar o escritor ao menu.
 
 ## 4. Decisões registradas
 
@@ -66,6 +68,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 | 29/10 | Produção e homologação separadas, escolhidas pelo `.env`; sem banco por ora | Testes não tocam a pesquisa real |
 | 29/10 | GitHub Actions só para rodar testes antes do merge | Verificação automática |
 | 29/10 | O Vinicius envia a branch para o GitHub antes do merge; o Claude segue sem push | Actions antes do merge sem afrouxar o bloqueio |
+| 29/10 | Modelo de escrita padrão: `deepseek-flash` (qwen3:8b continua selecionável) | Seção de teste: seguiu as regras e cobriu as 5 perguntas, ~US$ 0,004 por seção; qwen3:8b numerou, usou 4 de 19 trechos e inventou o contexto. Amostra pequena (1 seção) |
 | 29/10 | Orquestrador em LangGraph; n8n só como camada operacional (agendar, Drive, avisos) | O n8n não alcança os agentes Python |
 
 ## 5. Arquitetura
@@ -129,7 +132,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 ## 8. Preparar o ambiente
 
-Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita (`86e4c06`, na main); 8.5 feita (`c5440cf`, na main); 8.6 com commit na branch `feat/ambiente-actions`.
+Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita (`86e4c06`, na main); 8.5 feita (`c5440cf`, na main); 8.6 feita (`0763b9b`, Actions verdes).
 
 | # | Etapa | Verificação |
 |---|---|---|
