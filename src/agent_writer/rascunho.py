@@ -49,7 +49,7 @@ Regras:
 - toda frase termina com a referência do trecho que a sustenta, por exemplo [T3] ou [T3, T7] (exceto as frases {SEM_EVIDENCIA}, abaixo);
 - cada frase diz só o que o trecho citado diz; não acrescente conhecimento próprio, números, lugares ou nomes que não estejam no trecho;
 - escreva com suas palavras, em português; não copie frases inteiras dos trechos;
-- uma pergunta-guia pode pedir algo específico (um lugar, período, método, material ou população). Se os trechos não mencionam esse aspecto, não responda como se mencionassem: escreva só o que os trechos dizem, citando-os, e acrescente uma frase dizendo qual parte da pergunta eles não cobrem, terminada com {SEM_EVIDENCIA} no lugar da referência. Se os trechos não cobrem nada da pergunta, escreva apenas essa frase;
+- uma pergunta-guia pode pedir algo específico (um lugar, período, método, material ou população). Se os trechos não mencionam esse aspecto, não responda como se mencionassem: escreva só o que os trechos dizem, citando-os, e acrescente uma frase sobre o assunto dizendo o que os trechos não mencionam (por exemplo, 'Os trechos não mencionam X'), terminada com {SEM_EVIDENCIA} no lugar da referência. Se os trechos não cobrem nada da pergunta, escreva apenas essa frase. Use {SEM_EVIDENCIA} somente para um aspecto pedido que nenhum trecho cobre; não o use para dizer que a resposta poderia ser mais completa, detalhada ou comparativa, e não escreva frases sobre a pergunta em si ('a pergunta é coberta...');
 - não escreva introdução, conclusão nem lista de referências.
 
 Retorne SOMENTE o texto da seção."""
