@@ -2,6 +2,10 @@
 
 import json
 
+from agent_experiment.experimento import (
+    definir_experimento,
+    rodar_experimento,
+)
 from agent_intake.ajuste import (
     ajustar_pesquisa,
 )
@@ -241,7 +245,8 @@ def manter_pesquisa(dados: dict) -> None:
         print("[3] Textos completos — importa entrada/, baixa do OpenAlex e lista os que faltam")
         print("[4] Opções avançadas — etapas manuais, uma por vez")
         print("[5] Escrever uma seção — perguntas-guia, evidências e rascunho")
-        print("[6] Sair")
+        print("[6] Experimentos — código gerado por modelo, rodando isolado no Docker")
+        print("[7] Sair")
 
         escolha = input("> ").strip()
 
@@ -266,6 +271,10 @@ def manter_pesquisa(dados: dict) -> None:
             continue
 
         if escolha == "6":
+            menu_experimento()
+            continue
+
+        if escolha == "7":
             return
 
         print("\nOpção inválida.")
@@ -336,6 +345,29 @@ def menu_escrita() -> None:
             return
 
         if escolha == "5":
+            return
+
+        print("\nOpção inválida.")
+
+
+def menu_experimento() -> None:
+    while True:
+        print("\n=== Experimentos ===")
+        print("[1] Definir experimento — objetivo, código base, comando e métrica")
+        print("[2] Rodar experimento — o modelo propõe mudanças e o código roda isolado no Docker")
+        print("[3] Voltar")
+
+        escolha = input("> ").strip()
+
+        if escolha == "1":
+            rodar_etapa(definir_experimento)
+            return
+
+        if escolha == "2":
+            rodar_etapa(rodar_experimento)
+            return
+
+        if escolha == "3":
             return
 
         print("\nOpção inválida.")
