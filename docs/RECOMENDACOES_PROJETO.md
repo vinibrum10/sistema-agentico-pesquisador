@@ -43,13 +43,13 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
 | `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 iniciada em 23/10, guardada na branch `feat/escritor-etapa3` (`d5dda51`, sem merge):** `src/agent_writer/rascunho.py` (novo), tarefa `escrita_secao` em `config/modelos.json` e parâmetro `contexto` em `src/core/modelos.py`. Já gerou `rascunho_qwen3_8b.md` e `rascunho_deepseek-flash.md` na seção de teste; a comparação não foi avaliada; não está ligado ao menu |
-| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na branch `feat/ambiente-homologacao`; faltam testes e Actions |
-| `tests/` | Vazio |
+| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na main; testes na branch `feat/ambiente-testes`; falta o Actions |
+| `tests/` | 6 testes (`test_texto.py`, `test_pesquisa_ativa.py`), sem Ollama, API ou dados |
 
 **Divergência a resolver:** `rascunho.py` ainda não segue a decisão 5.1 (CAG): no
 prompt, os trechos vêm depois do título e das perguntas-guia, e não no início.
 
-**Próximo passo:** 8.5 (testes).
+**Próximo passo:** 8.6 (GitHub Actions).
 
 ## 4. Decisões registradas
 
@@ -126,7 +126,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 ## 8. Preparar o ambiente
 
-Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita na branch `feat/ambiente-homologacao`.
+Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita (`86e4c06`, na main); 8.5 feita na branch `feat/ambiente-testes`.
 
 | # | Etapa | Verificação |
 |---|---|---|
@@ -145,8 +145,9 @@ Observações:
   Claude Code, as regras valem para o comando como o Claude o escreve e para as
   ferramentas internas; não seguram variações (`git -C . push`) nem um script Python
   que grave arquivos por conta própria. São trava de segurança, não muralha.
-- `pytest` não está nas dependências do `pyproject.toml`; entra como dependência de
-  desenvolvimento na 8.5.
+- `pytest` é dependência de desenvolvimento (`[dependency-groups] dev` no
+  `pyproject.toml`), instalado no `.venv` da pasta principal. Para rodar os testes, de
+  dentro da worktree: `..\..\..\.venv\Scripts\python.exe -m pytest`.
 - Comandos de git que gravam caminhos (ex.: `git worktree add`) rodam no git do
   Windows (Desktop Commander), não no git do Linux da ponte, para não gravar caminhos
   `/sessions/...`.
