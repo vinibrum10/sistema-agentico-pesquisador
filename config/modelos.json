@@ -3,12 +3,17 @@
   "tarefas": {
     "juiz": "qwen3:8b",
     "perguntas_secao": "qwen3:8b",
-    "escrita_secao": "deepseek-flash"
+    "escrita_secao": "deepseek-flash",
+    "codigo_experimento": "qwen2.5-coder:7b"
   },
   "modelos": {
     "qwen3:8b": {
       "provedor": "ollama",
       "modelo": "qwen3:8b"
+    },
+    "qwen2.5-coder:7b": {
+      "provedor": "ollama",
+      "modelo": "qwen2.5-coder:7b"
     },
     "deepseek-flash": {
       "provedor": "openai_compativel",
