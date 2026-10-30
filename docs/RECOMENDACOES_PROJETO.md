@@ -34,7 +34,7 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 - **Rastreabilidade:** cada frase escrita pelo sistema aponta para um trecho com fonte.
 - Agentes não importam um ao outro: conversam por arquivos em `data/` e usam `core/`.
 
-## 3. Estado atual (29/10/2026 — main em `0763b9b`, igual a origin/main)
+## 3. Estado atual (29/10/2026 — origin/main em `5cd675f`, merge do PR #1)
 
 | Parte | Situação |
 |---|---|
@@ -42,17 +42,16 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 em andamento na branch `feat/escritor-etapa3` (sem merge):** `src/agent_writer/rascunho.py`, tarefa `escrita_secao` (padrão `deepseek-flash`) e parâmetro `contexto` em `src/core/modelos.py`. Prompt já no formato CAG (trechos no início) e com a regra de resposta parcial; testado na homologação (seção de teste, `rascunho_deepseek-flash_v2.md`). Verificação determinística pronta (`verificacao.py`, 7 checagens, grava `revisao_<modelo>.csv`); falta ligar ao menu |
+| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) e a etapa 3 até o prompt (`rascunho.py`, padrão `deepseek-flash`, formato CAG, regra de resposta parcial) na main. **Na branch `feat/escritor-menu` (sem merge; inclui a `feat/escritor-etapa3`):** verificação determinística (`verificacao.py`, 7 checagens, grava `revisao_<modelo>.csv`, commit `2b8d12b`) e o escritor ligado ao menu (opção 5 do menu da pesquisa ativa: definir seção, buscar evidências, escrever rascunho) |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
-| `tests/` | 19 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`), sem Ollama, API ou dados |
+| `tests/` | 24 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`, `test_menu_escrita.py`), sem Ollama, API ou dados |
 
 **Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
 tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
 prompt manda marcar `[sem evidência]`; a verificação determinística não detecta isso
 (nem afirmação que o trecho não sustenta): é papel do juiz de suporte (decisão de 21/10).
 
-**Próximo passo:** ligar o escritor ao menu. Hoje nenhuma das etapas 1 a 3 tem entrada
-em `src/main.py`.
+**Próximo passo:** a definir com o Vinicius.
 
 **Provisório:** `COPIA_MIN_PALAVRAS = 12` em `verificacao.py` (o maior trecho legítimo
 medido tinha 9 palavras; não havia cópia real para calibrar). Revisar quando surgir uma.
