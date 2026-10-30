@@ -19,13 +19,18 @@ O pesquisador decide nos pontos-chave (human-in-the-loop); o sistema faz o traba
 - `agent_writer`: V1 pronto — escreve uma seção por vez, só com trechos da busca local, cada frase
   ligada a um trecho, com verificação determinística do rascunho e saída com citações e `.bib` (ver README da pasta). Modelo de
   escrita padrão: `deepseek-flash` (API, cerca de US$ 0,003 por seção).
-- Ainda não existe: juiz de suporte do escritor, agente de código/ML, orquestrador.
+- `agent_experiment`: V1 pronto — roda experimentos de código (qualquer script que imprima uma métrica):
+  o modelo propõe uma mudança por rodada, o código roda isolado no Docker (sem rede), mede e decide pelo
+  número se melhorou; relatório com a diferença para o código base (ver README da pasta). Modelo de código
+  padrão: `qwen2.5-coder:7b` (local).
+- Ainda não existe: juiz de suporte do escritor, orquestrador.
   A pasta de um agente só é criada quando ele começa a ser construído.
 
 ## Como rodar
 
 Requer Ollama com `qwen3:8b` e `OPENALEX_API_KEY` no `.env`. O agente de escrita usa por padrão a API
-do DeepSeek (`DEEPSEEK_API_KEY` no `.env`); o `qwen3:8b` continua selecionável.
+do DeepSeek (`DEEPSEEK_API_KEY` no `.env`); o `qwen3:8b` continua selecionável. Os experimentos precisam do Docker Desktop aberto e, por padrão, do
+`qwen2.5-coder:7b` no Ollama.
 
     python src\main.py
 
@@ -40,7 +45,9 @@ Ao manter a pesquisa:
 - [4] Opções avançadas — etapas manuais, uma por vez (plano, triagem, loop, snowballing);
 - [5] Escrever uma seção — definir seção (título e perguntas-guia), buscar evidências, escrever o
   rascunho e gerar o texto com referências (`.bib`), uma etapa por vez;
-- [6] Sair.
+- [6] Experimentos — definir um experimento (código base, comando e métrica) e rodá-lo: o modelo propõe
+  mudanças e o código roda isolado no Docker;
+- [7] Sair.
 
 Testes (sem Ollama, API ou dados; rodam também no GitHub Actions a cada push). Precisam de
 `python -m pip install pytest==9.2.0`:
@@ -87,6 +94,7 @@ perguntas mais específicas quando existir o agente escritor.
     src/agent_intake/       coleta do contexto        -> ver README da pasta
     src/agent_research/     busca, triagem e refino   -> ver README da pasta
     src/agent_writer/       escrita de seções         -> ver README da pasta
+    src/agent_experiment/   experimentos com código   -> ver README da pasta
     data/active_research/   dados da pesquisa ativa (fora do git)
     tests/                  testes (pytest)
     scripts/                avaliações e experimentos (só leitura)
@@ -113,6 +121,7 @@ em `data/active_research/` e usam `core/`.
 | `entrada/` | PDFs que você obteve, com qualquer nome; a opção [3] reconhece pelo DOI ou pelo título e move para `textos/` |
 | `faltantes.csv` | relevantes e "talvez" ainda sem texto, relevantes primeiro, com link (`;`) |
 | `trechos/` | índice de trechos: `<ID>.jsonl` (trechos com a página do PDF) e `<ID>.npy` (vetores `bge-m3`) |
+| `experimentos/<nome>/` | `experimento.json`, `base/` (cópia do código) e uma pasta `execucao_<data>/` por execução, com `rodada_NN/`, `experimentos.csv` (`;`) e `relatorio.md` |
 | `escrita/<seção>/` | uma pasta por seção: `secao.json`, `evidencias.csv` (`;`), `rascunho_<modelo>.md`, `revisao_<modelo>.csv` (`;`), `texto_<modelo>.md` e `referencias_<modelo>.bib` |
 | `teste_trechos/` | teste da etapa 2: `perguntas.csv` (`;`) e o resultado de cada método (não abrir antes da avaliação) |
 
