@@ -43,13 +43,13 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
 | `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 iniciada em 23/10, guardada na branch `feat/escritor-etapa3` (`d5dda51`, sem merge):** `src/agent_writer/rascunho.py` (novo), tarefa `escrita_secao` em `config/modelos.json` e parâmetro `contexto` em `src/core/modelos.py`. Já gerou `rascunho_qwen3_8b.md` e `rascunho_deepseek-flash.md` na seção de teste; a comparação não foi avaliada; não está ligado ao menu |
-| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na main; testes na branch `feat/ambiente-testes`; falta o Actions |
+| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na main; testes na main; Actions na branch `feat/ambiente-actions` |
 | `tests/` | 6 testes (`test_texto.py`, `test_pesquisa_ativa.py`), sem Ollama, API ou dados |
 
 **Divergência a resolver:** `rascunho.py` ainda não segue a decisão 5.1 (CAG): no
 prompt, os trechos vêm depois do título e das perguntas-guia, e não no início.
 
-**Próximo passo:** 8.6 (GitHub Actions).
+**Próximo passo:** fechar a 8.6 (teste verde no GitHub) e retomar a etapa 3 do escritor.
 
 ## 4. Decisões registradas
 
@@ -65,6 +65,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 | 29/10 | Uma worktree fixa; Claude faz commit na branch; Vinicius faz merge e push | Isolamento sem várias pastas |
 | 29/10 | Produção e homologação separadas, escolhidas pelo `.env`; sem banco por ora | Testes não tocam a pesquisa real |
 | 29/10 | GitHub Actions só para rodar testes antes do merge | Verificação automática |
+| 29/10 | O Vinicius envia a branch para o GitHub antes do merge; o Claude segue sem push | Actions antes do merge sem afrouxar o bloqueio |
 | 29/10 | Orquestrador em LangGraph; n8n só como camada operacional (agendar, Drive, avisos) | O n8n não alcança os agentes Python |
 
 ## 5. Arquitetura
@@ -95,12 +96,14 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 1. Uma etapa = uma branch, aberta **dentro da worktree** (`git switch -c feat/<etapa> main`).
 2. O Claude codifica e testa na worktree, usando a homologação.
-3. O Claude faz commit na branch → o GitHub Actions roda os testes.
-4. Com os testes passando, o Vinicius faz o merge na main e o push.
-5. A próxima etapa abre uma branch nova a partir da main atualizada (as duas pastas
+3. O Claude faz commit na branch.
+4. O Vinicius envia a branch (`git push -u origin feat/<etapa>`); o GitHub Actions
+   roda os testes (decisão de 29/10: o push continua bloqueado para o Claude).
+5. Com os testes verdes no GitHub, o Vinicius faz o merge na main e o push.
+6. A próxima etapa abre uma branch nova a partir da main atualizada (as duas pastas
    usam o mesmo repositório, então a main local já aparece na worktree).
-6. O Claude nunca faz merge, push, nem troca para a main dentro da worktree.
-7. O Claude Code é iniciado **dentro da worktree** (`cd .claude\worktrees\trabalho`;
+7. O Claude nunca faz merge, push, nem troca para a main dentro da worktree.
+8. O Claude Code é iniciado **dentro da worktree** (`cd .claude\worktrees\trabalho`;
    `claude`). O `.claude/settings.json` só é lido da pasta onde a sessão começa, sem
    procurar nas pastas acima; por isso ele é versionado (exceção no `.gitignore`) e
    existe nas duas pastas.
@@ -126,7 +129,7 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 ## 8. Preparar o ambiente
 
-Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita (`86e4c06`, na main); 8.5 feita na branch `feat/ambiente-testes`.
+Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita (`86e4c06`, na main); 8.5 feita (`c5440cf`, na main); 8.6 com commit na branch `feat/ambiente-actions`.
 
 | # | Etapa | Verificação |
 |---|---|---|
@@ -136,7 +139,7 @@ Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`
 | 8.3 | Bloqueios do Claude Code em `.claude/settings.json`: negar `git push`, `git merge`, troca para a main, escrita em `data/` de produção e leitura do `.env` | tentar cada ação proibida e ver o bloqueio |
 | 8.4 | Homologação (seção 7): variável `PASTA_DADOS` + cópia dos dados | na worktree o caminho de dados aponta para a homologação; na pasta principal, para `data/` |
 | 8.5 | Testes com `pytest` em `tests/`, só de funções determinísticas (sem Ollama, sem API, sem dados) | `pytest` passa local |
-| 8.6 | GitHub Actions (`.github/workflows/testes.yml`) rodando o `pytest` a cada push de branch `feat/**` | commit aparece verde no GitHub |
+| 8.6 | GitHub Actions (`.github/workflows/testes.yml`) rodando o `pytest` a cada push (qualquer branch) | commit aparece verde no GitHub |
 
 Observações:
 - Bloqueios da 8.3 (`.claude/settings.json`): negam `git push`, `git merge`, troca
