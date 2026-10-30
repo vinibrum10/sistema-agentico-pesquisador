@@ -17,7 +17,7 @@ O pesquisador decide nos pontos-chave (human-in-the-loop); o sistema faz o traba
   e não adotado (ver "Teste da camada de trechos", parte B). A busca é usada pelo agente de escrita e
   pelo `scripts\teste_trechos.py`.
 - `agent_writer`: V1 pronto — escreve uma seção por vez, só com trechos da busca local, cada frase
-  ligada a um trecho, com verificação determinística do rascunho (ver README da pasta). Modelo de
+  ligada a um trecho, com verificação determinística do rascunho e saída com citações e `.bib` (ver README da pasta). Modelo de
   escrita padrão: `deepseek-flash` (API, cerca de US$ 0,003 por seção).
 - Ainda não existe: juiz de suporte do escritor, agente de código/ML, orquestrador.
   A pasta de um agente só é criada quando ele começa a ser construído.
@@ -38,8 +38,8 @@ Ao manter a pesquisa:
 - [3] Textos completos — importa os PDFs de `entrada/`, baixa do OpenAlex os que ele tem
   (US$ 0,01 cada; a chave grátis cobre US$ 1 por dia) e lista os que faltam em `faltantes.csv`;
 - [4] Opções avançadas — etapas manuais, uma por vez (plano, triagem, loop, snowballing);
-- [5] Escrever uma seção — definir seção (título e perguntas-guia), buscar evidências e escrever o
-  rascunho, uma etapa por vez;
+- [5] Escrever uma seção — definir seção (título e perguntas-guia), buscar evidências, escrever o
+  rascunho e gerar o texto com referências (`.bib`), uma etapa por vez;
 - [6] Sair.
 
 Testes (sem Ollama, API ou dados; rodam também no GitHub Actions a cada push). Precisam de
@@ -113,7 +113,7 @@ em `data/active_research/` e usam `core/`.
 | `entrada/` | PDFs que você obteve, com qualquer nome; a opção [3] reconhece pelo DOI ou pelo título e move para `textos/` |
 | `faltantes.csv` | relevantes e "talvez" ainda sem texto, relevantes primeiro, com link (`;`) |
 | `trechos/` | índice de trechos: `<ID>.jsonl` (trechos com a página do PDF) e `<ID>.npy` (vetores `bge-m3`) |
-| `escrita/<seção>/` | uma pasta por seção: `secao.json`, `evidencias.csv` (`;`), `rascunho_<modelo>.md` e `revisao_<modelo>.csv` (`;`) |
+| `escrita/<seção>/` | uma pasta por seção: `secao.json`, `evidencias.csv` (`;`), `rascunho_<modelo>.md`, `revisao_<modelo>.csv` (`;`), `texto_<modelo>.md` e `referencias_<modelo>.bib` |
 | `teste_trechos/` | teste da etapa 2: `perguntas.csv` (`;`) e o resultado de cada método (não abrir antes da avaliação) |
 
 ## Métricas de referência

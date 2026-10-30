@@ -42,9 +42,9 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 a 3 na main: definir seção (`secao.py`), evidências (`evidencias.py`), rascunho (`rascunho.py`, `deepseek-flash`, formato CAG) e verificação determinística (`verificacao.py`, 7 checagens, `revisao_<modelo>.csv`); ligado ao menu (opção 5). Teste de ponta a ponta na homologação em 29/10: 29 s + 6 s + 8 s, ~US$ 0,003 por rascunho. Regra de `[sem evidência]` mais estreita (PR #2; o modelo marcava 4 de 5 parágrafos, mesmo respondidos) |
+| `agent_writer` | Etapas 1 a 3 na main: definir seção (`secao.py`), evidências (`evidencias.py`), rascunho (`rascunho.py`, `deepseek-flash`, formato CAG) e verificação determinística (`verificacao.py`, 7 checagens, `revisao_<modelo>.csv`); ligado ao menu (opção 5). Teste de ponta a ponta na homologação em 29/10: 29 s + 6 s + 8 s, ~US$ 0,003 por rascunho. Regra de `[sem evidência]` mais estreita (PR #2; o modelo marcava 4 de 5 parágrafos, mesmo respondidos). **Na branch `feat/escritor-referencias`:** `referencias.py` (opção 4 do submenu): troca `[T3]` por `[@chave]` e gera o `.bib` (BibTeX); 6 de 6 entradas conferidas contra o Crossref |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
-| `tests/` | 24 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`, `test_menu_escrita.py`), sem Ollama, API ou dados |
+| `tests/` | 33 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`, `test_menu_escrita.py`, `test_referencias.py`), sem Ollama, API ou dados |
 
 **Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
 tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
