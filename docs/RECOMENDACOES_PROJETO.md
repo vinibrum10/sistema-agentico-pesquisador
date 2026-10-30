@@ -34,7 +34,7 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 - **Rastreabilidade:** cada frase escrita pelo sistema aponta para um trecho com fonte.
 - Agentes não importam um ao outro: conversam por arquivos em `data/` e usam `core/`.
 
-## 3. Estado atual (29/10/2026 — origin/main em `7a619db`)
+## 3. Estado atual (29/10/2026 — origin/main em `fca8050`)
 
 | Parte | Situação |
 |---|---|
@@ -42,7 +42,7 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 a 3 na main: definir seção (`secao.py`), evidências (`evidencias.py`), rascunho (`rascunho.py`, `deepseek-flash`, formato CAG) e verificação determinística (`verificacao.py`, 7 checagens, `revisao_<modelo>.csv`); ligado ao menu (opção 5). Teste de ponta a ponta na homologação em 29/10: 29 s + 6 s + 8 s, ~US$ 0,003 por rascunho. **Na branch `feat/escritor-marca-parcial`:** regra de `[sem evidência]` mais estreita (o modelo marcava 4 de 5 parágrafos, mesmo respondidos) |
+| `agent_writer` | Etapas 1 a 3 na main: definir seção (`secao.py`), evidências (`evidencias.py`), rascunho (`rascunho.py`, `deepseek-flash`, formato CAG) e verificação determinística (`verificacao.py`, 7 checagens, `revisao_<modelo>.csv`); ligado ao menu (opção 5). Teste de ponta a ponta na homologação em 29/10: 29 s + 6 s + 8 s, ~US$ 0,003 por rascunho. Regra de `[sem evidência]` mais estreita (PR #2; o modelo marcava 4 de 5 parágrafos, mesmo respondidos) |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
 | `tests/` | 24 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`, `test_menu_escrita.py`), sem Ollama, API ou dados |
 
@@ -102,13 +102,15 @@ medido tinha 9 palavras; não havia cópia real para calibrar). Revisar quando s
 └── .claude\worktrees\trabalho\            ← única worktree do Claude (fora do git)
 ```
 
-1. Uma etapa = uma branch, aberta **dentro da worktree** (`git switch -c feat/<etapa> main`).
+1. Um entregável = uma branch, com vários commits pequenos dentro dela, aberta **dentro da
+   worktree** (`git switch -c feat/<entregável> main`). Um push e um merge por branch; não
+   abrir uma branch por sub-passo.
 2. O Claude codifica e testa na worktree, usando a homologação.
 3. O Claude faz commit na branch.
 4. O Vinicius envia a branch (`git push -u origin feat/<etapa>`); o GitHub Actions
    roda os testes (decisão de 29/10: o push continua bloqueado para o Claude).
 5. Com os testes verdes no GitHub, o Vinicius faz o merge na main e o push.
-6. A próxima etapa abre uma branch nova a partir da main atualizada (as duas pastas
+6. O próximo entregável abre uma branch nova a partir da main atualizada (as duas pastas
    usam o mesmo repositório, então a main local já aparece na worktree).
 7. O Claude nunca faz merge, push, nem troca para a main dentro da worktree.
 8. O Claude Code é iniciado **dentro da worktree** (`cd .claude\worktrees\trabalho`;
