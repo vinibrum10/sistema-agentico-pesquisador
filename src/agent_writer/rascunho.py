@@ -5,6 +5,7 @@ import json
 import re
 
 from agent_writer.evidencias import escolher_secao
+from agent_writer.verificacao import gravar_revisao, verificar
 from core.modelos import CONFIG_FILE, criar_modelo
 
 
@@ -103,4 +104,8 @@ def escrever_rascunho():
     if inexistentes:
         print(f"ATENÇÃO: referências que não existem em evidencias.csv: {', '.join(inexistentes)}")
     print(f"Salvo em: {arquivo}")
+
+    linhas = verificar(texto, trechos, len(secao["perguntas"]))
+    revisao = pasta / f"revisao_{nome.replace(':', '_')}.csv"
+    print(f"Verificação: {gravar_revisao(revisao, linhas)} de {len(linhas)} linhas para revisar. Salvo em: {revisao}")
     return arquivo

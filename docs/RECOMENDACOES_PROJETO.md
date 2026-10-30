@@ -42,16 +42,20 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 em andamento na branch `feat/escritor-etapa3` (sem merge):** `src/agent_writer/rascunho.py`, tarefa `escrita_secao` (padrão `deepseek-flash`) e parâmetro `contexto` em `src/core/modelos.py`. Prompt já no formato CAG (trechos no início) e com a regra de resposta parcial; testado na homologação (seção de teste, `rascunho_deepseek-flash_v2.md`). Falta a verificação determinística e ligar ao menu |
+| `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 em andamento na branch `feat/escritor-etapa3` (sem merge):** `src/agent_writer/rascunho.py`, tarefa `escrita_secao` (padrão `deepseek-flash`) e parâmetro `contexto` em `src/core/modelos.py`. Prompt já no formato CAG (trechos no início) e com a regra de resposta parcial; testado na homologação (seção de teste, `rascunho_deepseek-flash_v2.md`). Verificação determinística pronta (`verificacao.py`, 7 checagens, grava `revisao_<modelo>.csv`); falta ligar ao menu |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
-| `tests/` | 8 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`), sem Ollama, API ou dados |
+| `tests/` | 19 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`), sem Ollama, API ou dados |
 
 **Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
 tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
-prompt manda marcar `[sem evidência]`; a conferência determinística disso ainda não existe.
+prompt manda marcar `[sem evidência]`; a verificação determinística não detecta isso
+(nem afirmação que o trecho não sustenta): é papel do juiz de suporte (decisão de 21/10).
 
-**Próximo passo:** verificação determinística do rascunho (referências, frases sem
-fonte, repetição, numeração, cópia literal) e ligar o escritor ao menu.
+**Próximo passo:** ligar o escritor ao menu. Hoje nenhuma das etapas 1 a 3 tem entrada
+em `src/main.py`.
+
+**Provisório:** `COPIA_MIN_PALAVRAS = 12` em `verificacao.py` (o maior trecho legítimo
+medido tinha 9 palavras; não havia cópia real para calibrar). Revisar quando surgir uma.
 
 ## 4. Decisões registradas
 
