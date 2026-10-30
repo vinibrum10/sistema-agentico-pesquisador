@@ -12,6 +12,7 @@ pesquisador revisa tudo. Acesso: menu principal → [5] Escrever uma seção.
 | 2 | Busca 5 trechos por pergunta (versão em inglês) na busca local; o mesmo trecho mantém a mesma referência (T1, T2...) em todas as perguntas | código | `evidencias.py` (`buscar_evidencias`) | `evidencias.csv` |
 | 3 | Escreve o rascunho: um parágrafo por pergunta, só com os trechos; pergunta qual modelo usar (Enter = padrão da tarefa `escrita_secao`, hoje `deepseek-flash`) | modelo + pesquisador | `rascunho.py` (`escrever_rascunho`) | `rascunho_<modelo>.md` |
 | 4 | Verifica o rascunho, sem modelo, e lista o que o pesquisador deve olhar. Roda sozinha no fim da etapa 3 | código | `verificacao.py` (`verificar`) | `revisao_<modelo>.csv` |
+| 5 | Gera o texto com referências: troca `[T3]` por `[@chave]` e grava o `.bib` dos papers citados (uma consulta em lote ao OpenAlex). Escolhe qual rascunho, se houver mais de um | código | `referencias.py` (`gerar_referencias`) | `texto_<modelo>.md`, `referencias_<modelo>.bib` |
 
 Tudo fica em `data/active_research/escrita/<título da seção>/` (nome da pasta com até 60 caracteres).
 
@@ -40,6 +41,20 @@ Uma linha por frase, com `paragrafo;frase;refs;problemas;status` (`ok` ou `revis
 
 A verificação **não** detecta trecho que fala de outro contexto (por exemplo, a pergunta pede um
 lugar que nenhum trecho cita) nem afirmação que o trecho não sustenta.
+
+## Referências (`texto_<modelo>.md` e `referencias_<modelo>.bib`)
+
+- A chave é o sobrenome do primeiro autor + o ano + os 4 últimos dígitos do ID do OpenAlex (por exemplo,
+  `kong2024_7574`): o mesmo paper tem a mesma chave em qualquer seção. Citações de vários papers viram
+  `[@a; @b]`. O `[sem evidência]` não muda.
+- O `.bib` traz autores, título, periódico, volume, número, páginas e DOI. Sem periódico, a entrada é `@misc`.
+- O estilo (ABNT, APA, IEEE...) **não** é formatado aqui, porque varia por universidade e área:
+  o texto traz `bibliography:` apontando para o `.bib`. Importe o `.bib` no Zotero ou renderize com o Pandoc e o
+  arquivo de estilo (`.csl`) da universidade: `pandoc texto_<modelo>.md --citeproc --csl estilo.csl -o texto.docx`
+  (o Pandoc ainda não foi testado neste projeto).
+- Sem autores no OpenAlex, a entrada sai com os dados do `results.csv` e o terminal avisa. O OpenAlex só dá o
+  nome completo ("Nome Sobrenome"): sobrenomes compostos dependem de como o Zotero ou o Pandoc leem o nome.
+- O rascunho original (`rascunho_<modelo>.md`, com `[T..]`) e o `revisao_<modelo>.csv` continuam intactos.
 
 ## Regras
 

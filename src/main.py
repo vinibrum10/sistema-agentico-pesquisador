@@ -51,6 +51,9 @@ from agent_writer.evidencias import (
 from agent_writer.rascunho import (
     escrever_rascunho,
 )
+from agent_writer.referencias import (
+    gerar_referencias,
+)
 from agent_writer.secao import (
     definir_secao,
 )
@@ -311,7 +314,8 @@ def menu_escrita() -> None:
         print("[1] Definir seção — título e perguntas-guia")
         print("[2] Buscar evidências — trechos de cada pergunta")
         print("[3] Escrever rascunho — gera o texto e o revisao_<modelo>.csv; pergunta qual modelo")
-        print("[4] Voltar")
+        print("[4] Gerar texto com referências — troca [T..] por citações e gera o .bib")
+        print("[5] Voltar")
 
         escolha = input("> ").strip()
 
@@ -328,6 +332,10 @@ def menu_escrita() -> None:
             return
 
         if escolha == "4":
+            rodar_etapa(gerar_referencias)
+            return
+
+        if escolha == "5":
             return
 
         print("\nOpção inválida.")
