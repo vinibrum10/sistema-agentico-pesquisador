@@ -30,7 +30,8 @@ O código gerado por modelo nunca roda direto na sua máquina. Cada rodada roda 
 
 - sem rede (`--network none`); memória de 4 GB e 2 CPUs (`MEMORIA` e `CPUS` em `executor.py`);
 - raiz somente leitura; só a pasta da rodada (`/exp`) é gravável; dados em `/dados`, somente leitura;
-- sem privilégios extras; o container é morto se o tempo da rodada estourar.
+- sem privilégios extras (no Linux, roda com o seu usuário, para acessar as suas pastas); o container é
+  morto se o tempo da rodada estourar.
 
 As dependências vêm do `requirements.txt` da pasta do código base: a imagem é montada uma vez (cacheada
 pelo conteúdo do arquivo) e a rede só é usada nessa montagem. Sem o arquivo, roda `python:3.12-slim`.

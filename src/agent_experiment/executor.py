@@ -2,6 +2,7 @@
 
 import hashlib
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -70,10 +71,12 @@ def _texto(valor) -> str:
 def executar(imagem: str, pasta_rodada: Path, pasta_dados: Path | None, comando: str, tempo_max_s: int, metrica: str) -> dict:
     """Roda `comando` em /exp (a pasta da rodada, gravável). Sem rede; dados em /dados, só leitura."""
     nome = f"exp-{uuid.uuid4().hex[:12]}"
+    # No Linux, sem --user o container roda como root sem privilégios e não acessa pastas de outro usuário (700).
+    usuario = ["--user", f"{os.getuid()}:{os.getgid()}"] if hasattr(os, "getuid") else []
     args = [
         "docker", "run", "--rm", "--name", nome,
         "--network", "none", "--memory", MEMORIA, "--cpus", CPUS, "--pids-limit", "256",
-        "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+        "--cap-drop", "ALL", "--security-opt", "no-new-privileges", *usuario,
         "--read-only", "--tmpfs", "/tmp", "-e", "HOME=/tmp",
         "--mount", f"type=bind,source={Path(pasta_rodada).resolve()},target=/exp", "-w", "/exp",
     ]
