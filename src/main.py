@@ -45,6 +45,15 @@ from agent_research.screening.revisao import (
 from agent_research.acervo.textos import (
     montar_acervo,
 )
+from agent_writer.evidencias import (
+    buscar_evidencias,
+)
+from agent_writer.rascunho import (
+    escrever_rascunho,
+)
+from agent_writer.secao import (
+    definir_secao,
+)
 from core.pesquisa_ativa import (
     CONTEXT_FILE,
     ETAPA_INTAKE_CONCLUIDO,
@@ -228,7 +237,8 @@ def manter_pesquisa(dados: dict) -> None:
         print("[2] Revisar resultados — relevantes e talvez em revisao.csv")
         print("[3] Textos completos — importa entrada/, baixa do OpenAlex e lista os que faltam")
         print("[4] Opções avançadas — etapas manuais, uma por vez")
-        print("[5] Sair")
+        print("[5] Escrever uma seção — perguntas-guia, evidências e rascunho")
+        print("[6] Sair")
 
         escolha = input("> ").strip()
 
@@ -249,6 +259,10 @@ def manter_pesquisa(dados: dict) -> None:
             continue
 
         if escolha == "5":
+            menu_escrita()
+            continue
+
+        if escolha == "6":
             return
 
         print("\nOpção inválida.")
@@ -286,6 +300,34 @@ def opcoes_avancadas(dados: dict) -> None:
             return
 
         if escolha == "5":
+            return
+
+        print("\nOpção inválida.")
+
+
+def menu_escrita() -> None:
+    while True:
+        print("\n=== Escrever uma seção ===")
+        print("[1] Definir seção — título e perguntas-guia")
+        print("[2] Buscar evidências — trechos de cada pergunta")
+        print("[3] Escrever rascunho — gera o texto e o revisao_<modelo>.csv; pergunta qual modelo")
+        print("[4] Voltar")
+
+        escolha = input("> ").strip()
+
+        if escolha == "1":
+            rodar_etapa(definir_secao)
+            return
+
+        if escolha == "2":
+            rodar_etapa(buscar_evidencias)
+            return
+
+        if escolha == "3":
+            rodar_etapa(escrever_rascunho)
+            return
+
+        if escolha == "4":
             return
 
         print("\nOpção inválida.")
