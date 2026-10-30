@@ -43,13 +43,13 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
 | `agent_writer` | Etapas 1 (`secao.py`) e 2 (`evidencias.py`) na main. **Etapa 3 iniciada em 23/10, guardada na branch `feat/escritor-etapa3` (`d5dda51`, sem merge):** `src/agent_writer/rascunho.py` (novo), tarefa `escrita_secao` em `config/modelos.json` e parâmetro `contexto` em `src/core/modelos.py`. Já gerou `rascunho_qwen3_8b.md` e `rascunho_deepseek-flash.md` na seção de teste; a comparação não foi avaliada; não está ligado ao menu |
-| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` na main; bloqueios na branch `feat/ambiente-bloqueios`; faltam homologação, testes e Actions |
+| Ambiente (seção 8) | Worktree criada em `.claude\worktrees\trabalho`; `CLAUDE.md` e bloqueios na main; homologação na branch `feat/ambiente-homologacao`; faltam testes e Actions |
 | `tests/` | Vazio |
 
 **Divergência a resolver:** `rascunho.py` ainda não segue a decisão 5.1 (CAG): no
 prompt, os trechos vêm depois do título e das perguntas-guia, e não no início.
 
-**Próximo passo:** testar os bloqueios da 8.3 e seguir para a 8.4.
+**Próximo passo:** 8.5 (testes).
 
 ## 4. Decisões registradas
 
@@ -109,21 +109,24 @@ prompt, os trechos vêm depois do título e das perguntas-guia, e não no iníci
 
 - **Produção:** `data/` da pasta principal (`data/active_research/`, ~462 MB em 29/10).
   É a pesquisa real; só o Vinicius roda nela.
-- **Homologação:** cópia da produção numa pasta separada, fora do git. É onde o Claude
-  roda e testa.
-- **Escolha pelo `.env`:** uma variável (`PASTA_DADOS`) diz qual pasta usar; sem a
-  variável, vale `data/` (comportamento de hoje). O `.env` da pasta principal não tem a
-  variável; o `.env` da worktree aponta para a homologação.
+- **Homologação:** cópia da produção em `.claude\worktrees\trabalho\data_homologacao\`
+  (fora do git). É onde o Claude roda e testa.
+- **Escolha pelo `.env`:** a variável `PASTA_DADOS` (caminho relativo à raiz de cada
+  pasta, ou absoluto) diz qual pasta usar; sem a variável, vale `data/`. O `.env` da
+  pasta principal não tem a variável; o `.env` da worktree é uma cópia dele com
+  `PASTA_DADOS=data_homologacao`.
 - O caminho dos dados é montado em um só lugar: `src/core/pesquisa_ativa.py`
-  (`ACTIVE_RESEARCH_DIR` e `BACKUPS_DIR`). Hoje esse arquivo não carrega o `.env`
-  (quem carrega é `src/core/modelos.py`, que importa o `pesquisa_ativa`); a mudança
-  precisa tratar isso. Os scripts antigos de `scripts/teste_paperqa/` montam o caminho
+  (`DATA_DIR`, que dá `ACTIVE_RESEARCH_DIR` e `BACKUPS_DIR`); o próprio arquivo carrega
+  o `.env`. Os scripts antigos de `scripts/teste_paperqa/` montam o caminho
   por conta própria e ficam de fora.
 - A homologação é recopiada da produção quando o Vinicius pedir; nunca o contrário.
+  Cópia de 29/10: 240 arquivos, 461 MB, `context.json` com hash igual ao da produção.
+- A worktree não tem `.venv` próprio; usa o da pasta principal. Comando para rodar o
+  sistema na homologação, de dentro da worktree: `..\..\..\.venv\Scripts\python.exe src\main.py`.
 
 ## 8. Preparar o ambiente
 
-Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 com commit na branch `feat/ambiente-bloqueios`, teste ao vivo pendente.
+Uma etapa por vez, cada uma com verificação. Situação em 29/10: 8.0 feita (`d5dda51`); 8.1 feita (worktree em `9f86df8`, HEAD destacado); 8.2 feita (`7afea9e`, na main); 8.3 feita (`b3e1308`, na main; `git push` e escrita em `data\` da pasta principal testados e bloqueados); 8.4 feita na branch `feat/ambiente-homologacao`.
 
 | # | Etapa | Verificação |
 |---|---|---|

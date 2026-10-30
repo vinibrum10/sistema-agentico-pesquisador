@@ -1,6 +1,7 @@
 """Pesquisa ativa: caminhos, leitura, gravação, backup e remoção do context.json."""
 
 import json
+import os
 import re
 import shutil
 import unicodedata
@@ -8,15 +9,21 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 # src/core/pesquisa_ativa.py -> raiz do projeto
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
+# PASTA_DADOS no .env escolhe produção ou homologação (sem a variável: data/).
+load_dotenv(PROJECT_ROOT / ".env")
+DATA_DIR = PROJECT_ROOT / os.getenv("PASTA_DADOS", "data")
 
-ACTIVE_RESEARCH_DIR = PROJECT_ROOT / "data" / "active_research"
+
+ACTIVE_RESEARCH_DIR = DATA_DIR / "active_research"
 
 
-BACKUPS_DIR = PROJECT_ROOT / "data" / "backups"
+BACKUPS_DIR = DATA_DIR / "backups"
 
 
 CONTEXT_FILE = ACTIVE_RESEARCH_DIR / "context.json"
