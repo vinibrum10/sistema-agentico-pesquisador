@@ -1,0 +1,78 @@
+name: relatorio-semanal
+
+# Relatório semanal do SAP-5. Substitui o fluxo n8n (descontinuado em 26/11/2026).
+# Envio ao Drive fica para uma etapa futura, com secrets aprovados pelo Vinicius.
+
+on:
+  schedule:
+    - cron: "0 11 * * 1" # segunda 08:00 America/Sao_Paulo (UTC-03, sem horário de verão)
+  workflow_dispatch:
+    inputs:
+      inicio:
+        description: "Segunda-feira AAAA-MM-DD a reprocessar (vazio = última semana completa)"
+        required: false
+        default: ""
+  pull_request:
+    paths:
+      - .github/workflows/relatorio-semanal.yml
+      - scripts/gerar_relatorio_semanal.py
+      - src/core/relatorio_semanal.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: relatorio-semanal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DADOS: data/active_research
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Conferir dados de origem
+        id: origem
+        run: |
+          if [ -d "$DADOS" ] && [ -n "$(ls -A "$DADOS" 2>/dev/null)" ]; then
+            echo "disponivel=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "disponivel=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Dados ausentes::$DADOS fica fora do git; o relatório sai só com avisos e métricas zeradas."
+          fi
+      - name: Gerar relatório
+        env:
+          INICIO: ${{ inputs.inicio }}
+          DISPONIVEL: ${{ steps.origem.outputs.disponivel }}
+        run: |
+          set -euo pipefail
+          args=(--dados "$DADOS" --sha-origem "$GITHUB_SHA")
+          if [ -n "${INICIO:-}" ]; then
+            if ! [[ "$INICIO" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "::error::inicio deve estar no formato AAAA-MM-DD"
+              exit 1
+            fi
+            args+=(--inicio "$INICIO")
+          fi
+          mkdir -p saida
+          python -B scripts/gerar_relatorio_semanal.py "${args[@]}" --formato json > saida/relatorio.json
+          nome=$(python -c "import json; print(json.load(open('saida/relatorio.json', encoding='utf-8'))['nome'])")
+          {
+            if [ "$DISPONIVEL" != "true" ]; then
+              echo "> **Atenção:** os dados da pesquisa (\`$DADOS\`) não estão no repositório. Este relatório foi gerado no GitHub Actions sem dados e mostra só avisos. Para números reais, rode o gerador localmente ou aprove uma fonte de dados para o Actions."
+              echo
+            fi
+            python -c "import json, sys; sys.stdout.write(json.load(open('saida/relatorio.json', encoding='utf-8'))['markdown'])"
+          } > "saida/$nome"
+          cat "saida/$nome" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: relatorio-semanal-${{ github.run_number }}
+          path: saida/
+          retention-days: 90
+          if-no-files-found: error
