@@ -2,7 +2,7 @@
 
 Documento de referência para o Vinicius e para o Claude. O Claude lê este arquivo no
 início de toda sessão, antes de propor ou alterar qualquer coisa.
-Última atualização: 29/10/2026.
+Última atualização: 26/11/2026 (seção 3; seção 9 preservada).
 
 ## 1. Regras para o Claude
 
@@ -34,7 +34,13 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 - **Rastreabilidade:** cada frase escrita pelo sistema aponta para um trecho com fonte.
 - Agentes não importam um ao outro: conversam por arquivos em `data/` e usam `core/`.
 
-## 3. Estado atual (29/10/2026 — origin/main em `fca8050`)
+## 3. Estado atual (26/11/2026 — entrega local em `sap-5-fechamento`)
+
+Base conferida no git local: main em `eddc90101f6deb4650eb29ef941476ce9cd96738`
+(merge PR #5, 29/10). Sem fetch nesta sessão. Referências e experimentos já estão
+integrados; as antigas indicações de branches em desenvolvimento foram corrigidas.
+Mudanças do SAP-5 ainda sem commits: `.git` está somente leitura no ambiente desta
+execução. Não houve troca de branch, push, merge ou rebase.
 
 | Parte | Situação |
 |---|---|
@@ -42,10 +48,12 @@ início de toda sessão, antes de propor ou alterar qualquer coisa.
 | `agent_research` | Concluído (V1): plano, OpenAlex, triagem, loop, snowballing |
 | Camada de modelos | Concluída: `config/modelos.json`, custo em `custos.csv` |
 | Camada de trechos (RAG) | Concluída: índice `bge-m3` + busca híbrida BM25 local |
-| `agent_writer` | Etapas 1 a 3 na main: definir seção (`secao.py`), evidências (`evidencias.py`), rascunho (`rascunho.py`, `deepseek-flash`, formato CAG) e verificação determinística (`verificacao.py`, 7 checagens, `revisao_<modelo>.csv`); ligado ao menu (opção 5). Teste de ponta a ponta na homologação em 29/10: 29 s + 6 s + 8 s, ~US$ 0,003 por rascunho. Regra de `[sem evidência]` mais estreita (PR #2; o modelo marcava 4 de 5 parágrafos, mesmo respondidos). **Na branch `feat/escritor-referencias`:** `referencias.py` (opção 4 do submenu): troca `[T3]` por `[@chave]` e gera o `.bib` (BibTeX); 6 de 6 entradas conferidas contra o Crossref |
-| `agent_experiment` | **Na branch `feat/experimento`:** executor no Docker (`executor.py`), laço de rodadas (`rodadas.py`) e definição/execução (`experimento.py`), opção 6 do menu. Testado com um experimento de brinquedo: acurácia 0,858 → 0,866 em 3 rodadas com `qwen2.5-coder:7b` (o `deepseek-flash` ficou em 0,858). A correção de erros foi testada só com falhas simuladas |
+| `agent_writer` | Integrado na main: definição de seção, evidências, rascunho CAG, verificação determinística e referências/BibTeX (`referencias.py`, opção 4 do submenu). Validação histórica de 29/10: ~US$ 0,003 por rascunho; 6 de 6 referências conferidas contra Crossref. Seção real revisada/rastreada (SAP-1) e juiz semântico (SAP-2) pendentes |
+| `agent_experiment` | Integrado na main: executor Docker, laço de rodadas e menu (opção 6). Validação histórica de brinquedo: 0,858 → 0,866 em 3 rodadas com `qwen2.5-coder:7b`; correção de falhas apenas simuladas. Experimento/falha reais (SAP-4) pendentes |
+| Orquestrador | LangGraph declarado, implementação pendente (SAP-3) |
+| Relatório semanal (SAP-5) | Preparado localmente: `core/relatorio_semanal.py`, CLI somente leitura e workflow `.github/workflows/relatorio-semanal.yml` (segunda 08:00 SP, artifact; n8n descontinuado em 26/11), sem credenciais. Última semana completa em São Paulo; data/custo inválidos e ausência de fontes sinalizados. Inventário separado de atividade. Envio ao Drive e fonte de dados no Actions pendentes de aprovação |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
-| `tests/` | 71 testes (`test_texto.py`, `test_pesquisa_ativa.py`, `test_rascunho.py`, `test_verificacao.py`, `test_menu_escrita.py`, `test_referencias.py`, `test_executor.py`, `test_rodadas.py`, `test_experimento.py`, `test_menu_experimento.py`), sem Ollama nem API; 4 de `test_executor.py` usam o Docker (pulados se indisponível) |
+| `tests/` | Registro histórico: 71 testes existentes. Novos: 9 Python e 8 Node. Em 26/11: suíte completa com 80 testes passando no `.venv` (Python 3.12.10); os 8 testes Node do n8n foram removidos com o fluxo. Sem leitura de `.env`, sem rede/modelos, temporários só no repo; detalhes em `SAP-5_VALIDACAO_LOCAL.md` |
 
 **Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
 tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
@@ -54,7 +62,10 @@ prompt manda marcar `[sem evidência]`; a verificação determinística não det
 Nas 2 seções testadas com o `deepseek-flash` (24 afirmações conferidas à mão), nenhuma
 estava sem sustentação; o `qwen3:8b` falhou na primeira.
 
-**Próximo passo:** a definir com o Vinicius.
+**Próximo passo:** Vinicius revisar o PR do SAP-5 (branch `sap-5-fechamento`) e
+decidir o envio ao Drive e a fonte de dados para o relatório no GitHub Actions. Contrato e comandos em `RELATORIO_SEMANAL.md`. Proposta de texto para
+Marcos em `SAP-5_MARCOS_PROPOSTA.md`; seção 9 não alterada. SAP-5 e toda a V1 não
+são declarados concluídos por esta preparação local.
 
 **Provisório:** `COPIA_MIN_PALAVRAS = 12` em `verificacao.py` (o maior trecho legítimo
 medido tinha 9 palavras; não havia cópia real para calibrar). Revisar quando surgir uma.

@@ -4,7 +4,16 @@ Workflow agêntico local para apoio à pesquisa científica, agnóstico ao tema.
 Modelo local via Ollama (`qwen3:8b`, GPU local); busca científica no OpenAlex.
 O pesquisador decide nos pontos-chave (human-in-the-loop); o sistema faz o trabalho repetitivo.
 
-## Status atual (29/10/2026)
+## Status atual (26/11/2026)
+
+Referências e experimentos estão integrados na main desde `eddc901` (29/10).
+A entrega do SAP-5 está na branch `sap-5-fechamento`: gerador semanal somente leitura,
+workflow do GitHub Actions que gera o relatório toda segunda às 08:00 (São Paulo) e o
+publica como artifact (o n8n foi descontinuado), e suíte completa passando (80 testes,
+Python 3.12). Continuam pendentes o envio ao Drive (com secrets aprovados), a fonte de
+dados para o Actions e a aplicação dos Marcos pelo Vinicius. Ver [contrato e operação](docs/RELATORIO_SEMANAL.md),
+[evidências locais](docs/SAP-5_VALIDACAO_LOCAL.md) e
+[proposta separada de Marcos](docs/SAP-5_MARCOS_PROPOSTA.md).
 
 - `agent_intake`: concluído (V1) — coleta e confirma o contexto da pesquisa.
 - `agent_research`: concluído (V1) — plano de busca, busca no OpenAlex, triagem,
@@ -49,10 +58,29 @@ Ao manter a pesquisa:
   mudanças e o código roda isolado no Docker;
 - [7] Sair.
 
-Testes (sem Ollama, API ou dados; rodam também no GitHub Actions a cada push). Precisam de
-`python -m pip install pytest==9.2.0`:
+Suíte completa (Python 3.12 no `.venv`), a partir da raiz:
 
-    python -m pytest
+    .venv\Scripts\python -m pytest -q
+
+Validação offline do relatório (Python >=3.12, sem pacotes adicionais), a partir da raiz:
+
+    python -B scripts/validar_local.py
+
+Relatório semanal automático: `.github/workflows/relatorio-semanal.yml` (segunda 08:00
+São Paulo, também manual), com o relatório como artifact. Ver `docs/RELATORIO_SEMANAL.md`.
+
+Seleção determinística existente, reutilizando pacotes locais do `.venv`, com
+temporários no repo, dotenv desabilitado e rede/Docker bloqueados:
+
+    python -B scripts/validar_local.py --base-deterministica
+
+Resultado local de 26/11: 27 testes Python passaram, 4 Docker pulados, 8 testes
+Node passaram. Os 9 testes do gerador estão incluídos nos 27. A suíte completa
+(`python -B scripts/validar_local.py --suite-existente`) não concluiu a coleta neste
+ambiente: o `.venv` aponta para Python 3.12 indisponível e suas dependências compiladas
+não funcionam com o Python 3.14 instalado. Restabelecer o ambiente e executar toda
+a suíte é pendente; nenhum pacote foi instalado nesta entrega. O GitHub Actions
+existente roda `pytest` a cada push; não houve push nem execução de CI nesta sessão.
 
 Calibração do juiz:
 
@@ -97,9 +125,9 @@ perguntas mais específicas quando existir o agente escritor.
     src/agent_experiment/   experimentos com código   -> ver README da pasta
     data/active_research/   dados da pesquisa ativa (fora do git)
     tests/                  testes (pytest)
-    scripts/                avaliações e experimentos (só leitura)
+    scripts/                avaliações, experimentos e CLI de relatório
     config/                 modelo de cada tarefa, preços e teto de gasto (modelos.json)
-    docs/                   regras, decisões e fluxo de git (RECOMENDACOES_PROJETO.md)
+    docs/                   regras, estado e contrato do relatório semanal
     CLAUDE.md               manda ler docs/RECOMENDACOES_PROJETO.md
 
 Regras: uma pasta por agente (`agent_<função>`, nome em inglês; arquivos em português
@@ -171,3 +199,7 @@ esquema e decidir no código elevou para cerca de 70%.
 
 1. Ampliar o gabarito com papers sem resumo, recalibrar e manter backup fora de `data/active_research/`.
 2. Decidir sobre `screening_v31.csv` (sem uso no código).
+3. SAP-1 a SAP-4: seção real revisada/rastreada, juiz de suporte semântico,
+   orquestrador LangGraph, experimento e correção de falha reais.
+4. SAP-5: envio ao Drive (secrets aprovados), fonte de dados para o relatório no
+   Actions e aplicação dos Marcos exclusivamente pelo Vinicius. Ver [pendências detalhadas](docs/SAP-5_VALIDACAO_LOCAL.md).
