@@ -51,9 +51,9 @@ execução. Não houve troca de branch, push, merge ou rebase.
 | `agent_writer` | Integrado na main: definição de seção, evidências, rascunho CAG, verificação determinística e referências/BibTeX (`referencias.py`, opção 4 do submenu). Validação histórica de 29/10: ~US$ 0,003 por rascunho; 6 de 6 referências conferidas contra Crossref. Seção real revisada/rastreada (SAP-1) e juiz semântico (SAP-2) pendentes |
 | `agent_experiment` | Integrado na main: executor Docker, laço de rodadas e menu (opção 6). Validação histórica de brinquedo: 0,858 → 0,866 em 3 rodadas com `qwen2.5-coder:7b`; correção de falhas apenas simuladas. Experimento/falha reais (SAP-4) pendentes |
 | Orquestrador | LangGraph declarado, implementação pendente (SAP-3) |
-| Relatório semanal (SAP-5) | Preparado localmente: `core/relatorio_semanal.py`, CLI somente leitura e `docs/n8n/relatorio_semanal.json` inativo, sem credenciais. Última semana completa em São Paulo; data/custo inválidos e ausência de fontes sinalizados. Inventário separado de atividade. Drive e agendamento real não executados; aceites operacionais pendentes |
+| Relatório semanal (SAP-5) | Preparado localmente: `core/relatorio_semanal.py`, CLI somente leitura e workflow `.github/workflows/relatorio-semanal.yml` (segunda 08:00 SP, artifact; n8n descontinuado em 26/11), sem credenciais. Última semana completa em São Paulo; data/custo inválidos e ausência de fontes sinalizados. Inventário separado de atividade. Envio ao Drive e fonte de dados no Actions pendentes de aprovação |
 | Ambiente (seção 8) | Concluído em 29/10: worktree, `CLAUDE.md`, bloqueios, homologação, testes e Actions (verdes no GitHub) |
-| `tests/` | Registro histórico: 71 testes existentes. Novos: 9 Python e 8 Node. Nesta execução: seleção compatível com 27 Python passando (inclui os 9 novos), 4 Docker pulados, 8 Node passando. Suíte completa bloqueada na coleta por ambiente Python/dependências incompatíveis. Sem leitura de `.env`, sem rede/modelos, temporários só no repo; detalhes em `SAP-5_VALIDACAO_LOCAL.md` |
+| `tests/` | Registro histórico: 71 testes existentes. Novos: 9 Python e 8 Node. Em 26/11: suíte completa com 80 testes passando no `.venv` (Python 3.12.10); os 8 testes Node do n8n foram removidos com o fluxo. Sem leitura de `.env`, sem rede/modelos, temporários só no repo; detalhes em `SAP-5_VALIDACAO_LOCAL.md` |
 
 **Limite conhecido do escritor:** o modelo pode responder uma pergunta com trechos que
 tratam de outro contexto (ex.: a pergunta pede um lugar que nenhum trecho cita). O
@@ -62,9 +62,8 @@ prompt manda marcar `[sem evidência]`; a verificação determinística não det
 Nas 2 seções testadas com o `deepseek-flash` (24 afirmações conferidas à mão), nenhuma
 estava sem sustentação; o `qwen3:8b` falhou na primeira.
 
-**Próximo passo:** Vinicius revisar a entrega local do SAP-5, liberar o ambiente
-para commits locais e validação completa e aprovar configuração/testes operacionais
-n8n/Drive. Contrato e comandos em `RELATORIO_SEMANAL.md`. Proposta de texto para
+**Próximo passo:** Vinicius revisar o PR do SAP-5 (branch `sap-5-fechamento`) e
+decidir o envio ao Drive e a fonte de dados para o relatório no GitHub Actions. Contrato e comandos em `RELATORIO_SEMANAL.md`. Proposta de texto para
 Marcos em `SAP-5_MARCOS_PROPOSTA.md`; seção 9 não alterada. SAP-5 e toda a V1 não
 são declarados concluídos por esta preparação local.
 

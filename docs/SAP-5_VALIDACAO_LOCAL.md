@@ -1,5 +1,10 @@
 # Evidências locais — 26/11/2026
 
+> **Atualização (26/11/2026, noite):** o n8n foi descontinuado e substituído pelo GitHub
+> Actions (`.github/workflows/relatorio-semanal.yml`); o export e os testes Node foram
+> removidos. Os commits foram feitos na branch e a suíte completa passou (80 testes,
+> Python 3.12.10 no `.venv`). O registro abaixo é o histórico da primeira execução.
+
 Branch mantida: `sap-5-fechamento`; base local
 `eddc90101f6deb4650eb29ef941476ce9cd96738`. Sem fetch, troca de branch, push,
 merge ou rebase. Nenhum dado interno da CELEO ou SSO foi usado.

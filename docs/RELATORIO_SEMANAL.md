@@ -2,7 +2,8 @@
 
 Entrega local de 26/11/2026, autorizada pelo Vinicius, com base no post Crosswalk
 `kp20ry` e no [comentário 10589](https://vinibrum10.atlassian.net/browse/SAP-5?focusedCommentId=10589).
-Automação operacional e aceite no Drive continuam **PENDENTES DE APROVAÇÃO**.
+Automação pelo GitHub Actions (o n8n foi descontinuado em 26/11/2026). Envio ao Drive
+continua **PENDENTE DE APROVAÇÃO**.
 
 ## Contrato
 
@@ -11,7 +12,7 @@ Automação operacional e aceite no Drive continuam **PENDENTES DE APROVAÇÃO**
 - Fuso `America/Sao_Paulo`, UTC−03. O gerador usa offset explícito para não exigir
   pacote tzdata no Windows; aceita apenas períodos desde 2020. Rever o contrato se a
   regra do fuso mudar; datas históricas com horário de verão ficam fora do contrato.
-- Horário operacional proposto no export: segunda, 08:00 no mesmo fuso.
+- Horário operacional: segunda, 08:00 no mesmo fuso, pelo GitHub Actions (cron `0 11 * * 1` UTC).
 - Nome estável: `sap-semanal_<inicio>_<fim-exclusivo>.md`.
 - Origem obrigatória: pasta `active_research` explícita e SHA completo informado.
   O SHA identifica o código informado pelo chamador, não certifica os dados nem
@@ -55,7 +56,6 @@ Na raiz do repo, PowerShell:
 
 ```powershell
 python -B scripts/validar_local.py
-node --test tests/test_n8n_relatorio.cjs
 python -B scripts/validar_local.py --base-deterministica
 ```
 
@@ -76,57 +76,34 @@ python -B scripts/gerar_relatorio_semanal.py --dados .validacao-local/origem-aus
 Para dados efetivos, o operador deverá substituir `--dados` por uma cópia pessoal
 de homologação aprovada. Esta entrega não executou o gerador contra `data/` real.
 
-## n8n: export preparado, sem importação nem execução real
+## GitHub Actions (substitui o n8n desde 26/11/2026)
 
-Arquivo: [n8n/relatorio_semanal.json](n8n/relatorio_semanal.json).
+O fluxo n8n foi **descontinuado** por decisão do Vinicius (26/11/2026). O export
+`docs/n8n/relatorio_semanal.json` e o teste Node `tests/test_n8n_relatorio.cjs`
+foram removidos; ficam no histórico do git (commit `6c8a8d2`).
 
-Grafo: Schedule/Manual → Gerar → Preparar → Buscar no Drive → Decidir → Existe?
-Se existir, reutiliza ID; se não existir, cria metadados. Ambos seguem para
-PATCH do conteúdo pelo ID → Confirmar ID e link. A busca limita por pasta pessoal,
-nome exato e `trashed=false`; mais de um resultado, paginação, busca incompleta
-ou MIME incompatível interrompem a publicação. O arquivo é Markdown comum.
+Arquivo: [`.github/workflows/relatorio-semanal.yml`](../.github/workflows/relatorio-semanal.yml).
 
-O export está `active=false`, não contém credenciais e tem placeholders bloqueantes
-para SHA e pasta. Os nós HTTP não têm retry automático e interrompem o workflow
-na falha. O histórico salva execuções e erros; um registro de metadados criado antes
-de uma falha de upload é reutilizado pela próxima execução. Conferir sucesso pelo
-nó Confirmar e pelo conteúdo, pois metadados vazios ainda não são um relatório pronto.
+- **Quando:** toda segunda às 08:00 de São Paulo (cron `0 11 * * 1` em UTC; São Paulo
+  está em UTC−03 sem horário de verão). Também roda manualmente (`workflow_dispatch`,
+  com `inicio` opcional `AAAA-MM-DD` para reprocessar uma semana) e em pull requests
+  que mudem o workflow ou o gerador.
+- **O que faz:** roda `scripts/gerar_relatorio_semanal.py` com `--dados data/active_research`
+  e `--sha-origem $GITHUB_SHA`, grava `sap-semanal_<inicio>_<fim>.md` e o JSON em `saida/`,
+  mostra o relatório no resumo da execução e publica `saida/` como artifact
+  `relatorio-semanal-<n>` (retenção de 90 dias).
+- **Sem secrets:** permissão `contents: read`, sem credenciais e sem `.env`.
+- **Limite conhecido — dados:** `data/active_research/` fica fora do git, então no Actions
+  a origem não existe. O workflow avisa (`::warning` "Dados ausentes"), põe uma nota de
+  atenção no topo do relatório e gera o relatório só com avisos e métricas zeradas.
+  Para números reais: rodar o gerador localmente (comando acima) ou aprovar uma fonte de
+  dados para o Actions (ex.: armazenamento privado acessado com secret).
+- Execuções simultâneas são serializadas por `concurrency` (sem cancelar a anterior).
 
-Reexecução sequencial usa o mesmo arquivo. **Exige execução serializada**, inclusive
-entre disparos manuais, agendados e outros workflows que publiquem na mesma pasta.
-Nome no Drive não é chave única: busca + criação não são uma operação atômica.
-O export não implementa bloqueio distribuído. Configurar e testar exclusão mútua
-no ambiente operacional antes de ativar; concorrência pode produzir duplicatas,
-detectadas na busca posterior. Não prometer idempotência concorrente.
+### Pendente de aprovação
 
-### Preparação operacional — PENDENTE DE APROVAÇÃO
-
-1. Confirmar dia/horário/fuso, pasta pessoal exclusiva de relatórios e política de
-   retenção do histórico. Não usar dados internos da CELEO ou SSO.
-2. Confirmar n8n self-hosted, versão dos nós do export e acesso local controlado.
-   O Execute Command não existe no n8n Cloud; em Docker executa no container e
-   precisa de Python e mounts próprios. Desde n8n 2.0 vem desabilitado por padrão;
-   eventual habilitação/instalação depende de aprovação, não foi feita aqui.
-3. Importar inativo; conferir parâmetros no editor. Substituir caminhos e SHA no
-   comando Gerar por caminhos estáticos revisados; não interpolar texto de posts
-   ou entradas externas em shell. Para reprocessar semana antiga, informar
-   `--inicio AAAA-MM-DD` no comando. Trocar o placeholder de pasta no nó Preparar.
-4. Selecionar OAuth pessoal Google Drive nos três nós HTTP. Credenciais ficam no
-   n8n, nunca no export/repo. Montar código e dados pessoais para leitura; o
-   gerador não precisa de permissão de escrita. Não configurar `.env` para ele.
-5. Configurar serialização/exclusão mútua e validar com fixtures numa pasta de teste.
-   Executar manualmente, conferir contagens e conteúdo; repetir e conferir o mesmo
-   ID; simular falha de publicação e confirmar erro no histórico e recuperação sem
-   duplicação. Testar disparo agendado, fuso e ciclo semanal completo.
-6. Só depois de aprovados os testes operacionais, ativar/publicar e registrar os
-   links/evidências no Jira. Aplicar Marcos é atribuição exclusiva do Vinicius.
-
-Os testes Node executam o grafo e os nós Code exportados com HTTP simulado em memória.
-Não validam importabilidade em uma versão específica do n8n, OAuth, permissões,
-conectividade, serialização real nem o agendador. Esses aceites permanecem abertos.
-
-Fontes oficiais consultadas em 26/11/2026:
-[Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/),
-[Schedule Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.scheduletrigger/),
-[busca de arquivos Drive](https://developers.google.com/workspace/drive/api/guides/search-files),
-[upload/atualização Drive](https://developers.google.com/workspace/drive/api/guides/manage-uploads).
+1. **Envio ao Drive:** etapa futura do workflow, com credencial guardada em GitHub
+   Secrets. Só com aprovação do Vinicius; não usar dados internos da CELEO ou SSO.
+2. **Fonte de dados no Actions:** decidir se o relatório semanal deve ter números reais
+   no Actions e de onde virão os dados.
+3. **Marcos:** aplicar a proposta de `SAP-5_MARCOS_PROPOSTA.md` na seção 9 (só o Vinicius).

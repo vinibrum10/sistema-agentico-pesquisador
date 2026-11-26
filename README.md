@@ -7,11 +7,11 @@ O pesquisador decide nos pontos-chave (human-in-the-loop); o sistema faz o traba
 ## Status atual (26/11/2026)
 
 Referências e experimentos estão integrados na main desde `eddc901` (29/10).
-A entrega local do SAP-5 está preparada na branch `sap-5-fechamento`, com gerador
-semanal somente leitura, export n8n inativo e testes offline. Commits foram bloqueados
-pela permissão somente leitura de `.git` neste ambiente. O aceite operacional no
-Drive/agendador, a suíte completa no ambiente compatível e os Marcos pelo Vinicius
-continuam pendentes. Ver [contrato e operação](docs/RELATORIO_SEMANAL.md),
+A entrega do SAP-5 está na branch `sap-5-fechamento`: gerador semanal somente leitura,
+workflow do GitHub Actions que gera o relatório toda segunda às 08:00 (São Paulo) e o
+publica como artifact (o n8n foi descontinuado), e suíte completa passando (80 testes,
+Python 3.12). Continuam pendentes o envio ao Drive (com secrets aprovados), a fonte de
+dados para o Actions e a aplicação dos Marcos pelo Vinicius. Ver [contrato e operação](docs/RELATORIO_SEMANAL.md),
 [evidências locais](docs/SAP-5_VALIDACAO_LOCAL.md) e
 [proposta separada de Marcos](docs/SAP-5_MARCOS_PROPOSTA.md).
 
@@ -58,11 +58,16 @@ Ao manter a pesquisa:
   mudanças e o código roda isolado no Docker;
 - [7] Sair.
 
-Validação offline do relatório (Python >=3.12, sem pacotes adicionais) e simulação
-do workflow (Node.js com `node:test`), a partir da raiz:
+Suíte completa (Python 3.12 no `.venv`), a partir da raiz:
+
+    .venv\Scripts\python -m pytest -q
+
+Validação offline do relatório (Python >=3.12, sem pacotes adicionais), a partir da raiz:
 
     python -B scripts/validar_local.py
-    node --test tests/test_n8n_relatorio.cjs
+
+Relatório semanal automático: `.github/workflows/relatorio-semanal.yml` (segunda 08:00
+São Paulo, também manual), com o relatório como artifact. Ver `docs/RELATORIO_SEMANAL.md`.
 
 Seleção determinística existente, reutilizando pacotes locais do `.venv`, com
 temporários no repo, dotenv desabilitado e rede/Docker bloqueados:
@@ -122,7 +127,7 @@ perguntas mais específicas quando existir o agente escritor.
     tests/                  testes (pytest)
     scripts/                avaliações, experimentos e CLI de relatório
     config/                 modelo de cada tarefa, preços e teto de gasto (modelos.json)
-    docs/                   regras, estado, contrato semanal e export n8n inativo
+    docs/                   regras, estado e contrato do relatório semanal
     CLAUDE.md               manda ler docs/RECOMENDACOES_PROJETO.md
 
 Regras: uma pasta por agente (`agent_<função>`, nome em inglês; arquivos em português
@@ -196,6 +201,5 @@ esquema e decidir no código elevou para cerca de 70%.
 2. Decidir sobre `screening_v31.csv` (sem uso no código).
 3. SAP-1 a SAP-4: seção real revisada/rastreada, juiz de suporte semântico,
    orquestrador LangGraph, experimento e correção de falha reais.
-4. SAP-5: commits locais quando o ambiente permitir, suíte completa em Python
-   compatível, aprovação/configuração e aceites reais n8n/Drive, aplicação dos
-   Marcos exclusivamente pelo Vinicius. Ver [pendências detalhadas](docs/SAP-5_VALIDACAO_LOCAL.md).
+4. SAP-5: envio ao Drive (secrets aprovados), fonte de dados para o relatório no
+   Actions e aplicação dos Marcos exclusivamente pelo Vinicius. Ver [pendências detalhadas](docs/SAP-5_VALIDACAO_LOCAL.md).
